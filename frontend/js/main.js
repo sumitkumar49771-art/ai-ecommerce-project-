@@ -294,26 +294,64 @@ function renderAccessGate() {
         </div>
         <div class="access-gate-field">
           <label for="gate-pass">Password</label>
-          <input id="gate-pass" type="password" placeholder="Enter Password" autocomplete="off" required />
+          <div class="access-gate-pass-wrap">
+            <input id="gate-pass" type="password" placeholder="Enter Password" autocomplete="off" required />
+            <button type="button" class="access-gate-eye-btn" id="gate-eye-btn" aria-label="Show password" tabindex="-1">
+              <svg id="gate-eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
         </div>
         <p id="gate-error" class="access-gate-error" style="display:none;"></p>
         <button type="submit" class="access-gate-btn" id="gate-submit-btn">Unlock</button>
+        <a href="#" class="access-gate-forgot" id="gate-forgot-link">Forgot password?</a>
       </form>
     </div>
   `;
   document.body.appendChild(gate);
+
+  const eyeBtn = gate.querySelector("#gate-eye-btn");
+  const eyeIcon = gate.querySelector("#gate-eye-icon");
+  const passInput = gate.querySelector("#gate-pass");
+  eyeBtn.addEventListener("click", () => {
+    const showing = passInput.type === "text";
+    passInput.type = showing ? "password" : "text";
+    eyeBtn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+    eyeIcon.innerHTML = showing
+      ? `<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path><circle cx="12" cy="12" r="3"></circle>`
+      : `<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.4 21.4 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 5c7 0 11 7 11 7a21.5 21.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+  });
+
+  gate.querySelector("#gate-forgot-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    document.getElementById("gate-id").value = "admin";
+    passInput.value = "shopai123";
+    passInput.type = "text";
+    eyeBtn.setAttribute("aria-label", "Hide password");
+    eyeIcon.innerHTML = `<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.4 21.4 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 5c7 0 11 7 11 7a21.5 21.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+    showHint("Default credentials auto-filled below — just click Unlock.");
+  });
 
   const errorEl = gate.querySelector("#gate-error");
   const btnEl = gate.querySelector("#gate-submit-btn");
   let countdownTimer = null;
 
   function showError(msg) {
+    errorEl.classList.remove("access-gate-hint");
     errorEl.textContent = msg;
     errorEl.style.display = "block";
     const card = gate.querySelector(".access-gate-card");
     card.classList.remove("shake");
     void card.offsetWidth;
     card.classList.add("shake");
+  }
+
+  function showHint(msg) {
+    errorEl.classList.add("access-gate-hint");
+    errorEl.textContent = msg;
+    errorEl.style.display = "block";
   }
 
   function startLockCountdown() {
