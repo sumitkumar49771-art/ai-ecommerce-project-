@@ -482,7 +482,40 @@ function toggleDarkMode() {
   if (toggleBtn) toggleBtn.textContent = isDark ? "☀️" : "🌙";
 }
 
+function initPasswordToggles() {
+  document.querySelectorAll('input[type="password"]').forEach((input) => {
+    if (input.dataset.toggleAdded) return;
+    input.dataset.toggleAdded = "true";
+
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    input.style.paddingRight = "40px";
+    input.style.boxSizing = "border-box";
+    input.style.width = "100%";
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
+    toggleBtn.setAttribute("aria-label", "Show password");
+    toggleBtn.textContent = "👁️";
+    toggleBtn.style.cssText =
+      "position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:16px; padding:4px; line-height:1; z-index:2;";
+
+    toggleBtn.addEventListener("click", () => {
+      const isHidden = input.type === "password";
+      input.type = isHidden ? "text" : "password";
+      toggleBtn.textContent = isHidden ? "🙈" : "👁️";
+      toggleBtn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+    });
+
+    wrapper.appendChild(toggleBtn);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  initPasswordToggles();
+
   // Show the login gate only:
   //  1) The very first time the site is opened in this browser tab session, OR
   //  2) Every time the Admin Dashboard is accessed (extra layer for admin).
