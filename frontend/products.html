@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>All Products — ShopAI</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <div class="container">
+    <div class="section-title">
+      <h2>All Products</h2>
+      <div class="filter-bar">
+        <div class="filter-select-wrap">
+          <select id="sort-select" class="filter-select" onchange="loadProductsPage(1)">
+            <option value="">Sort: Newest</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+            <option value="rating">Top Rated</option>
+          </select>
+        </div>
+        <div class="filter-select-wrap">
+          <select class="filter-select" onchange="filterByCategory(this.value)">
+          <option value="">All Categories</option>
+          <option value="Footwear">Footwear</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Home & Kitchen">Home & Kitchen</option>
+          <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+          <option value="Books">Books</option>
+          <option value="Sports & Fitness">Sports & Fitness</option>
+          <option value="Toys & Games">Toys & Games</option>
+          <option value="Grocery & Gourmet">Grocery & Gourmet</option>
+        </select>
+        </div>
+        <div class="filter-select-wrap" style="display:flex; align-items:center; gap:6px;">
+          <input type="number" id="min-price-input" placeholder="Min ₹" min="0" style="width:80px;" class="filter-select" onchange="loadProductsPage(1)" />
+          <span style="color:var(--muted);">–</span>
+          <input type="number" id="max-price-input" placeholder="Max ₹" min="0" style="width:80px;" class="filter-select" onchange="loadProductsPage(1)" />
+        </div>
+        <div class="filter-select-wrap">
+          <select id="rating-select" class="filter-select" onchange="loadProductsPage(1)">
+            <option value="">Any Rating</option>
+            <option value="4">4★ & up</option>
+            <option value="3">3★ & up</option>
+            <option value="2">2★ & up</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="product-grid" id="products-grid"><p>Loading...</p></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
+  <script>loadProductsPage(1);</script>
+</body>
+</html>

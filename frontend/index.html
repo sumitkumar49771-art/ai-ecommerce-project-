@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShopAI — AI Powered E-Commerce</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-eyebrow"><span class="pulse-dot"></span> AI-POWERED SHOPPING ENGINE</div>
+        <h1>AI-Powered Shopping<br /><span class="accent">Just For You</span></h1>
+        <p>Discover products tailored to your taste and preferences with our AI technology — real-time recommendations, natural-language search, and a shopping assistant.</p>
+
+        <form class="ai-search-box" onsubmit="handleSmartSearch(event)">
+          <span class="search-icon">🔍</span>
+          <input id="hero-search-input" placeholder="Try: shoes under 2000" autocomplete="off" />
+          <button class="btn" type="submit">Ask AI</button>
+        </form>
+
+        <div class="hero-stats">
+          <a href="products.html" class="btn">Shop Now</a>
+          <a href="products.html" class="btn btn-outline-light">Learn More</a>
+        </div>
+      </div>
+
+      <div class="hero-visual" id="hero-visual">
+        <div class="hero-blob"></div>
+        <div class="hero-cart-icon">🛒</div>
+        <div class="float-card card-1"><div class="float-card-img skeleton">🎧</div><div class="float-card-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="float-card card-2"><div class="float-card-img skeleton">👟</div><div class="float-card-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="float-card card-3"><div class="float-card-img skeleton">🎒</div><div class="float-card-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="features-strip">
+      <div class="feature-item" style="cursor:pointer;" onclick="showFreeDeliveryInfo()"><div class="feature-icon">🚚</div><div><strong>Free Delivery</strong><span id="home-free-delivery-text">On orders above ₹499</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="showReturnsInfo()"><div class="feature-icon">↩️</div><div><strong>Easy Returns</strong><span id="home-returns-text">Within 7 days</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="showToast('All payments are encrypted and 100% secure. Cards, UPI and wallets supported.', 'info', 4000)"><div class="feature-icon">🔒</div><div><strong>Secure Payments</strong><span>100% Protected</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="toggleChat()"><div class="feature-icon">🎧</div><div><strong>AI Support</strong><span>24/7 Assistance</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="location.href='products.html'"><div class="feature-icon">🏷️</div><div><strong>Best Prices</strong><span>Guaranteed</span></div></div>
+    </div>
+
+    <div id="home-sale-section" style="display:none;">
+      <div class="promo-banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);align-items:center;">
+        <div class="promo-banner-left">
+          <span class="promo-icon">🔥</span>
+          <div>
+            <h3 style="color:#fff;">Big Summer Sale is Live! Up to 50% OFF</h3>
+            <p id="home-sale-countdown" style="color:#fff;font-weight:600;"></p>
+          </div>
+        </div>
+        <a href="products.html?deal=true" class="btn" style="background:#fff;color:#ef4444;">Shop the Sale</a>
+      </div>
+      <div class="product-grid" id="sale-grid"></div>
+    </div>
+
+    <div class="section-title">
+      <h2>Top Categories</h2>
+      <a href="products.html" class="btn btn-outline">View All</a>
+    </div>
+    <div class="top-cats-row">
+      <div class="top-cat-item" onclick="location.href='products.html?category=Electronics'"><div class="top-cat-circle">🎧</div><span>Electronics</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Clothing'"><div class="top-cat-circle">👕</div><span>Fashion</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Footwear'"><div class="top-cat-circle">👟</div><span>Footwear</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Home %26 Kitchen'"><div class="top-cat-circle">🍹</div><span>Home &amp; Kitchen</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Beauty %26 Personal Care'"><div class="top-cat-circle">💄</div><span>Beauty</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Books'"><div class="top-cat-circle">📚</div><span>Books</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Sports %26 Fitness'"><div class="top-cat-circle">🏋️</div><span>Sports</span></div>
+      <div class="top-cat-item" onclick="location.href='products.html?category=Toys %26 Games'"><div class="top-cat-circle">🧸</div><span>Toys</span></div>
+    </div>
+
+    <div class="category-chips" id="category-chips"></div>
+
+    <div id="smart-search-section" style="display:none;">
+      <div class="section-title">
+        <h2>🔍 Search Results</h2>
+      </div>
+      <div id="smart-search-interpreted"></div>
+      <div id="smart-search-results" class="product-grid"></div>
+    </div>
+
+    <div class="section-title">
+      <h2>🤖 Today's Best Deals <span class="ai-deal-subtitle">Priced below category average, rated at or above it</span></h2>
+      <a href="products.html" class="btn btn-outline">View All Deals</a>
+    </div>
+    <div class="product-grid" id="deals-grid"><p>Analyzing prices...</p></div>
+
+    <div class="promo-banner">
+      <div class="promo-banner-left">
+        <span class="promo-icon">🎁</span>
+        <div>
+          <h3>Get Extra 10% OFF on Your First Order</h3>
+          <p>Use Code: <span class="promo-code">SHOPAI10</span></p>
+        </div>
+      </div>
+      <a href="products.html" class="btn">Shop Now</a>
+    </div>
+
+    <div class="section-title">
+      <h2>Featured Products</h2>
+      <a href="products.html" class="btn btn-outline">View All</a>
+    </div>
+    <div class="product-grid" id="featured-grid"><p>Loading products...</p></div>
+
+    <div id="recommended-section">
+      <div class="section-title">
+        <h2>🤖 Recommended For You (AI)</h2>
+      </div>
+      <div class="product-grid" id="recommended-grid"></div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
+  <script>loadHomePage(); initHero();</script>
+</body>
+</html>

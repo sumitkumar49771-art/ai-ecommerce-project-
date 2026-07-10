@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checkout — ShopAI</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <div class="container" style="max-width:900px;">
+    <h2 style="margin-bottom:20px;">Checkout</h2>
+    <div id="alert-box"></div>
+
+    <div class="checkout-grid">
+      <div>
+        <!-- SAVED ADDRESSES -->
+        <div class="admin-card">
+          <h3>Delivery Address</h3>
+          <div id="saved-addresses"></div>
+
+          <div id="new-address-form" style="margin-top:14px;">
+            <p style="font-weight:600; margin-bottom:8px; font-size:14px;">+ Add a new address</p>
+            <div class="admin-form-row">
+              <div class="form-group"><label>Full Name</label><input id="addr-fullName" /></div>
+              <div class="form-group"><label>Phone</label><input id="addr-phone" /></div>
+            </div>
+            <div class="form-group"><label>Address</label><input id="addr-line" placeholder="House no, street, area" /></div>
+            <div class="admin-form-row">
+              <div class="form-group"><label>City</label><input id="addr-city" /></div>
+              <div class="form-group"><label>State</label><input id="addr-state" /></div>
+              <div class="form-group"><label>Pincode</label><input id="addr-pincode" /></div>
+            </div>
+            <button class="btn btn-outline" onclick="saveNewAddress()">Save Address</button>
+          </div>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="admin-card">
+          <h3>Payment Method</h3>
+          <div class="payment-options" id="payment-options">
+            <label class="payment-option" data-method="COD">
+              <input type="radio" name="payment" value="COD" /> 💵 Cash on Delivery
+            </label>
+            <label class="payment-option" data-method="UPI">
+              <input type="radio" name="payment" value="UPI" /> 📱 UPI (GPay / PhonePe / Paytm)
+            </label>
+            <label class="payment-option" data-method="Card">
+              <input type="radio" name="payment" value="Card" /> 💳 Credit / Debit Card
+            </label>
+          </div>
+          <div id="mock-payment-fields"></div>
+        </div>
+      </div>
+
+      <!-- ORDER SUMMARY -->
+      <div>
+        <div class="admin-card">
+          <h3>Order Summary</h3>
+          <div id="checkout-items"></div>
+          <hr style="margin:14px 0; border-color:var(--border);" />
+          <p style="display:flex; justify-content:space-between; font-size:14px; color:var(--muted);">
+            <span>Subtotal</span><span id="checkout-subtotal">₹0</span>
+          </p>
+          <p style="display:flex; justify-content:space-between; font-size:14px; color:var(--muted);">
+            <span>Shipping</span><span id="checkout-shipping">—</span>
+          </p>
+          <p id="checkout-eta" style="font-size:12px; color:var(--muted); margin:2px 0 8px;"></p>
+
+          <div style="display:flex; gap:6px; margin:10px 0;">
+            <input id="coupon-input" placeholder="Coupon code" style="flex:1; text-transform:uppercase;" />
+            <button type="button" class="btn btn-outline" onclick="applyCouponCode()">Apply</button>
+          </div>
+          <p id="coupon-message" style="font-size:12px; margin:-4px 0 8px;"></p>
+          <p id="checkout-discount-row" style="display:none; justify-content:space-between; font-size:14px; color:var(--success);">
+            <span id="checkout-discount-label">Discount</span><span id="checkout-discount">-₹0</span>
+          </p>
+
+          <hr style="margin:14px 0; border-color:var(--border);" />
+          <p style="display:flex; justify-content:space-between; font-size:18px; font-weight:700;">
+            <span>Total</span><span id="checkout-total">₹0</span>
+          </p>
+          <button class="btn" style="width:100%; margin-top:14px;" onclick="handleCheckout()" id="place-order-btn">Place Order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/checkout.js"></script>
+  <script>initCheckoutPage();</script>
+</body>
+</html>
