@@ -516,15 +516,7 @@ function initPasswordToggles() {
 document.addEventListener("DOMContentLoaded", () => {
   initPasswordToggles();
 
-  // Show the login gate only:
-  //  1) The very first time the site is opened in this browser tab session, OR
-  //  2) Every time the Admin Dashboard is accessed (extra layer for admin).
-  const isAdminPage = window.location.pathname.endsWith("admin.html");
-  const alreadyUnlockedThisSession = sessionStorage.getItem("siteUnlocked") === "true";
-
-  if (isAdminPage || !alreadyUnlockedThisSession) {
-    renderAccessGate();
-  }
+  // Access gate disabled — site opens directly for all visitors.
 
   renderNavbar();
   renderFooter();
