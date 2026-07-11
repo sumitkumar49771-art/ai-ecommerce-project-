@@ -160,6 +160,9 @@ async function toggleWishlistBtn(productId, el) {
       el.classList.remove("active");
       showToast("Removed from wishlist", "info");
     }
+    el.classList.remove("pop-anim");
+    void el.offsetWidth; // restart animation even if clicked repeatedly
+    el.classList.add("pop-anim");
     updateWishlistCount();
   } catch (err) {
     showToast(err.message, "error");
@@ -196,7 +199,13 @@ async function loadWishlistPage() {
     currentWishlistIds = new Set(wishlist.map((p) => p._id));
     grid.innerHTML = wishlist.length
       ? wishlist.map(productCard).join("")
-      : "<p>Your wishlist is empty. <a href='products.html'>Browse products</a></p>";
+      : `
+        <div class="empty-state">
+          <span class="empty-icon">🤍</span>
+          <h3>Your wishlist is empty</h3>
+          <p>Save items you love here so you don't lose track of them.</p>
+          <a class="btn" href="products.html">Browse Products</a>
+        </div>`;
   } catch (err) {
     grid.innerHTML = "<p>Could not load wishlist.</p>";
   }
@@ -314,8 +323,8 @@ async function loadProductsPage(page = 1) {
     grid.innerHTML = data.products.length
       ? data.products.map(productCard).join("")
       : deal
-      ? "<p>No deals live right now — check back soon!</p>"
-      : "<p>No products found.</p>";
+      ? `<div class="empty-state"><span class="empty-icon">🔥</span><h3>No deals live right now</h3><p>Check back soon for fresh discounts!</p></div>`
+      : `<div class="empty-state"><span class="empty-icon">🔍</span><h3>No products found</h3><p>Try adjusting your filters or search term.</p></div>`;
     renderPagination(data.page, data.totalPages);
   } catch (err) {
     grid.innerHTML = `<p>Could not load products.</p>`;
@@ -424,7 +433,7 @@ async function loadProductDetail() {
           <p style="margin:12px 0; color:var(--muted);">${p.description}</p>
           <p class="product-price" style="font-size:26px;">₹${p.price}</p>
           <p style="margin:8px 0; color:var(--muted); font-size:14px;"><span class="stars">${starRating(p.rating)}</span> ${p.rating} (${p.numReviews} reviews) · ${p.stock} in stock</p>
-          <button class="btn" onclick="addToCartHandler('${p._id}')">Add to Cart</button>
+          <button class="btn" onclick="addToCartHandler('${p._id}', event)">Add to Cart</button>
           ${
             isLoggedIn()
               ? `<button class="btn btn-outline" id="detail-wishlist-btn" onclick="toggleDetailWishlist('${p._id}')" style="margin-left:8px;">${currentWishlistIds.has(p._id) ? "♥ In Wishlist" : "♡ Add to Wishlist"}</button>`
@@ -621,7 +630,7 @@ async function submitReview(productId) {
   }
 }
 
-async function addToCartHandler(productId) {
+async function addToCartHandler(productId, event) {
   if (!isLoggedIn()) {
     window.location.href = "login.html";
     return;
@@ -629,8 +638,51 @@ async function addToCartHandler(productId) {
   try {
     await apiRequest("/cart", "POST", { productId, quantity: 1 }, true);
     showToast("Added to cart!", "success");
+    flyToCartAnimation(event);
     updateCartCount();
   } catch (err) {
     showToast(err.message, "error");
   }
+}
+
+// Small delightful touch: animates a dot flying from the clicked button
+// toward the Cart icon in the navbar, then bumps the cart count badge.
+function flyToCartAnimation(event) {
+  const cartLink = document.querySelector('.nav-links a[href="cart.html"]');
+  if (!event || !event.target || !cartLink) return;
+
+  const btn = event.target.closest("button") || event.target;
+  btn.classList.remove("added-anim");
+  void btn.offsetWidth;
+  btn.classList.add("added-anim");
+
+  const startRect = btn.getBoundingClientRect();
+  const endRect = cartLink.getBoundingClientRect();
+
+  const dot = document.createElement("div");
+  dot.className = "fly-to-cart";
+  dot.style.width = "16px";
+  dot.style.height = "16px";
+  dot.style.background = "var(--primary, #2563eb)";
+  dot.style.left = `${startRect.left + startRect.width / 2 - 8}px`;
+  dot.style.top = `${startRect.top + startRect.height / 2 - 8}px`;
+  document.body.appendChild(dot);
+
+  // Trigger the transition on the next frame so the browser registers the start position first
+  requestAnimationFrame(() => {
+    dot.style.left = `${endRect.left + endRect.width / 2 - 8}px`;
+    dot.style.top = `${endRect.top + endRect.height / 2 - 8}px`;
+    dot.style.transform = "scale(0.3)";
+    dot.style.opacity = "0.5";
+  });
+
+  setTimeout(() => {
+    dot.remove();
+    const badge = document.getElementById("cart-count");
+    if (badge) {
+      badge.classList.remove("bump-anim");
+      void badge.offsetWidth;
+      badge.classList.add("bump-anim");
+    }
+  }, 700);
 }

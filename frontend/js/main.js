@@ -137,18 +137,56 @@ async function updateWishlistCount() {
 async function updateCartCount() {
   try {
     const cart = await apiRequest("/cart", "GET", null, true);
-    const badge = document.getElementById("cart-count");
-    if (!badge) return;
     const totalQty = (cart.items || []).reduce((sum, i) => sum + i.quantity, 0);
-    if (totalQty > 0) {
-      badge.textContent = totalQty;
-      badge.style.display = "inline-block";
-    } else {
-      badge.style.display = "none";
-    }
+    [document.getElementById("cart-count"), document.getElementById("mobile-cart-count")].forEach((badge) => {
+      if (!badge) return;
+      if (totalQty > 0) {
+        badge.textContent = totalQty;
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+    });
   } catch (err) {
     // silently ignore — cart count is a non-critical UI enhancement
   }
+}
+
+// App-style bottom navigation bar shown only on small screens (see
+// .mobile-bottom-nav CSS media query). Always rendered in the DOM — CSS
+// handles hiding it on desktop — so it stays in sync without extra JS.
+function renderMobileNav() {
+  if (document.getElementById("mobile-bottom-nav")) return;
+  const loggedIn = isLoggedIn();
+  const path = window.location.pathname.split("/").pop() || "index.html";
+
+  const items = [
+    { href: "index.html", icon: "🏠", label: "Home" },
+    { href: "products.html", icon: "🔍", label: "Search" },
+    { href: "cart.html", icon: "🛒", label: "Cart", badgeId: "mobile-cart-count" },
+    loggedIn
+      ? { href: "wishlist.html", icon: "♡", label: "Wishlist" }
+      : { href: "login.html", icon: "♡", label: "Wishlist" },
+    loggedIn
+      ? { href: "orders.html", icon: "👤", label: "Account" }
+      : { href: "login.html", icon: "👤", label: "Login" },
+  ];
+
+  const nav = document.createElement("div");
+  nav.id = "mobile-bottom-nav";
+  nav.className = "mobile-bottom-nav";
+  nav.innerHTML = items
+    .map(
+      (item) => `
+      <a href="${item.href}" class="${path === item.href ? "active" : ""}">
+        <span class="mobile-nav-icon">${item.icon}${
+          item.badgeId ? `<span class="badge" id="${item.badgeId}" style="display:none;">0</span>` : ""
+        }</span>
+        <span>${item.label}</span>
+      </a>`
+    )
+    .join("");
+  document.body.appendChild(nav);
 }
 
 function renderFooter() {
@@ -543,6 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderNavbar();
   renderFooter();
+  renderMobileNav();
   renderChatWidget();
   document.getElementById("ai-chat-button")?.addEventListener("click", toggleChat);
 });

@@ -12,7 +12,13 @@ async function loadCart() {
     const cart = await apiRequest("/cart", "GET", null, true);
 
     if (!cart.items.length) {
-      container.innerHTML = "<p>Your cart is empty. <a href='products.html'>Browse products</a></p>";
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="empty-icon">🛒</span>
+          <h3>Your cart is empty</h3>
+          <p>Looks like you haven't added anything yet. Let's fix that!</p>
+          <a class="btn" href="products.html">Browse Products</a>
+        </div>`;
       summary.innerHTML = "";
       return;
     }
