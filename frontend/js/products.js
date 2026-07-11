@@ -87,7 +87,7 @@ function starRating(rating) {
 }
 
 function productBadge(p) {
-  if (p.dealLabel === "Excellent Deal") return `<span class="badge-tag badge-deal">🤖 AI Deal Pick</span>`;
+  if (p.dealLabel === "Excellent Deal") return `<span class="badge-tag badge-deal">🤖 ${p.dealScore}% Deal Score</span>`;
   if (p.rating >= 4.6 && p.numReviews >= 100) return `<span class="badge-tag badge-bestseller">🔥 Bestseller</span>`;
   if (p.stock > 0 && p.stock <= 15) return `<span class="badge-tag badge-lowstock">⚡ Only ${p.stock} left</span>`;
   if (p.rating >= 4.7) return `<span class="badge-tag badge-top">⭐ Top Rated</span>`;
@@ -222,6 +222,22 @@ function renderCategoryChips() {
     .join("");
 }
 
+/* ---------- RECENTLY VIEWED (homepage) ---------- */
+async function loadRecentlyViewed() {
+  const section = document.getElementById("recently-viewed-section");
+  const row = document.getElementById("recently-viewed-row");
+  if (!section || !row || !isLoggedIn()) return;
+
+  try {
+    const data = await apiRequest("/ai/recently-viewed", "GET", null, true);
+    if (data.products.length === 0) return; // stay hidden until they've viewed something
+    row.innerHTML = data.products.map(productCard).join("");
+    section.style.display = "block";
+  } catch (err) {
+    // non-critical — just leave the section hidden
+  }
+}
+
 /* ---------- AI DEAL SCORE (homepage) ---------- */
 async function loadDeals() {
   const grid = document.getElementById("deals-grid");
@@ -241,6 +257,7 @@ async function loadHomePage() {
   renderCategoryChips();
   await loadWishlistIds();
   loadDeals();
+  loadRecentlyViewed();
   loadHomeSaleSection();
   const grid = document.getElementById("featured-grid");
   const recGrid = document.getElementById("recommended-grid");
@@ -375,6 +392,7 @@ function filterByCategory(cat) {
 /* ---------- AI SMART SEARCH ---------- */
 async function handleSmartSearch(event) {
   event.preventDefault();
+  hideSearchSuggestions();
   const inputEl = (event.target && event.target.querySelector("input")) || document.getElementById("smart-search-input");
   const query = (inputEl ? inputEl.value : "").trim();
   if (!query) return;

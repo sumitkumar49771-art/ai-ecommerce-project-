@@ -28,6 +28,19 @@ exports.getRecommendations = async (req, res) => {
   }
 };
 
+// @route GET /api/ai/recently-viewed
+// Raw browsing history (most recent first) — used for the "Recently Viewed"
+// row on the home page. Unlike /recommendations, this shows the actual
+// products the user looked at, not AI-suggested similar ones.
+exports.getRecentlyViewed = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("browsingHistory");
+    res.json({ products: user.browsingHistory.slice(0, 10) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @route POST /api/ai/track-view
 // Records that a logged-in user viewed a product, feeding the AI engine
 exports.trackView = async (req, res) => {

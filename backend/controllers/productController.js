@@ -2,6 +2,27 @@ const Product = require("../models/Product");
 const { getSimilarProducts } = require("../utils/aiRecommendation");
 
 // @route GET /api/products
+// @route GET /api/products/suggestions?q=
+// Lightweight autocomplete suggestions as the user types in the search box.
+// Uses a prefix regex (not $text) so partial words like "sho" match "Shoes"
+// immediately, instead of waiting for a complete word like full-text search needs.
+exports.getSearchSuggestions = async (req, res) => {
+  try {
+    const q = (req.query.q || "").trim();
+    if (q.length < 2) return res.json({ suggestions: [] });
+
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"); // escape regex special chars
+    const products = await Product.find({ name: regex })
+      .select("name image category price")
+      .limit(6)
+      .lean();
+
+    res.json({ suggestions: products });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.getProducts = async (req, res) => {
   try {
     const { category, search, sort, minPrice, maxPrice, minRating } = req.query;

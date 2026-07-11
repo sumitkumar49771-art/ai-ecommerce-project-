@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   getProducts,
+  getSearchSuggestions,
   getProductById,
   createProduct,
   updateProduct,
@@ -10,6 +11,7 @@ const {
 const { protect, admin } = require("../middleware/authMiddleware");
 
 router.get("/", getProducts);
+router.get("/suggestions", getSearchSuggestions); // must come before /:id
 router.get("/:id", getProductById);
 router.post("/", protect, admin, createProduct);
 router.put("/:id", protect, admin, updateProduct);

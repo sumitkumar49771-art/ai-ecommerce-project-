@@ -52,9 +52,10 @@ async function renderNavbar() {
   nav.className = "navbar";
   nav.innerHTML = `
     <a href="index.html" class="logo">Shop<span>AI</span></a>
-    <form class="nav-search" onsubmit="handleSmartSearch(event)">
-      <input id="smart-search-input" placeholder="Search for products, brands and more..." autocomplete="off" />
+    <form class="nav-search" onsubmit="handleSmartSearch(event)" style="position:relative;">
+      <input id="smart-search-input" placeholder="Search for products, brands and more..." autocomplete="off" oninput="handleSearchInput(this.value)" onblur="setTimeout(hideSearchSuggestions, 150)" />
       <button type="submit">🔍 Search</button>
+      <div id="search-suggestions" class="search-suggestions" style="display:none;"></div>
     </form>
     <div class="nav-links">
       <a href="#" onclick="toggleDarkMode(); return false;" title="Toggle dark mode" id="dark-mode-toggle">🌙</a>
@@ -187,6 +188,60 @@ function renderMobileNav() {
     )
     .join("");
   document.body.appendChild(nav);
+}
+
+let searchDebounceTimer = null;
+
+// Debounced as-you-type suggestions dropdown under the navbar search box.
+function handleSearchInput(value) {
+  clearTimeout(searchDebounceTimer);
+  const query = value.trim();
+  const box = document.getElementById("search-suggestions");
+  if (!box) return;
+
+  if (query.length < 2) {
+    hideSearchSuggestions();
+    return;
+  }
+
+  searchDebounceTimer = setTimeout(async () => {
+    try {
+      const data = await apiRequest(`/products/suggestions?q=${encodeURIComponent(query)}`);
+      renderSearchSuggestions(data.suggestions, query);
+    } catch (err) {
+      hideSearchSuggestions();
+    }
+  }, 250); // wait for typing to pause before hitting the API
+}
+
+function renderSearchSuggestions(suggestions, query) {
+  const box = document.getElementById("search-suggestions");
+  if (!box) return;
+
+  if (!suggestions.length) {
+    box.innerHTML = `<div class="search-suggestion-empty">No matches for "${query}" — press Enter for AI smart search instead.</div>`;
+    box.style.display = "block";
+    return;
+  }
+
+  box.innerHTML = suggestions
+    .map(
+      (p) => `
+      <a href="product-detail.html?id=${p._id}" class="search-suggestion-item">
+        <img src="${p.image}" onerror="this.onerror=null;this.src=placeholderImage('${escJs(p.name)}','${escJs(p.category)}');" />
+        <div>
+          <div class="ss-name">${p.name}</div>
+          <div class="ss-meta">${p.category} · ₹${p.price}</div>
+        </div>
+      </a>`
+    )
+    .join("");
+  box.style.display = "block";
+}
+
+function hideSearchSuggestions() {
+  const box = document.getElementById("search-suggestions");
+  if (box) box.style.display = "none";
 }
 
 function renderFooter() {

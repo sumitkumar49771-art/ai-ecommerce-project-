@@ -93,6 +93,35 @@ img { max-width: 100%; display: block; }
 }
 .nav-search button:hover { background: var(--primary-dark); }
 
+/* Search-as-you-type suggestions dropdown */
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(15,23,42,0.15);
+  max-height: 360px;
+  overflow-y: auto;
+  z-index: 300;
+}
+.search-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.search-suggestion-item:last-child { border-bottom: none; }
+.search-suggestion-item:hover { background: var(--primary-light); }
+.search-suggestion-item img { width: 36px; height: 36px; object-fit: contain; background: #fff; border-radius: 6px; flex-shrink: 0; }
+.search-suggestion-item .ss-name { font-size: 13.5px; font-weight: 600; }
+.search-suggestion-item .ss-meta { font-size: 12px; color: var(--muted); }
+.search-suggestion-empty { padding: 14px; font-size: 13px; color: var(--muted); text-align: center; }
+
 .nav-links { display: flex; gap: 20px; align-items: center; margin-left: auto; flex-shrink: 0; }
 .nav-links a { font-weight: 500; color: var(--text); font-size: 14px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .nav-links a:hover { color: var(--primary); }
@@ -296,6 +325,23 @@ img { max-width: 100%; display: block; }
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 18px;
 }
+
+/* Horizontal scrolling row (Amazon/Flipkart-style carousel), used for
+   "Recently Viewed" and similar space-efficient product rows. */
+.scroll-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.scroll-row .product-card {
+  flex: 0 0 200px;
+  scroll-snap-align: start;
+}
+.scroll-row .product-card img { height: 180px; }
+
 .product-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
