@@ -137,20 +137,88 @@ exports.getProductDealScore = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// Simple rule-based AI shopping assistant (no external API key required)
+// Calls OpenAI's chat completion API for a natural-language shopping assistant.
+// Returns null on any failure so the caller can fall back to the rule-based bot.
+async function callLLM(message, contextProduct, catalogSample) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+
+  const systemPrompt = `You are ShopAI's friendly shopping assistant for an e-commerce store.
+Keep replies short (1-3 sentences), helpful, and focused on shopping — products, orders, returns, pricing.
+${
+  contextProduct
+    ? `The shopper is currently viewing this product: "${contextProduct.name}" — ₹${contextProduct.price}, category: ${contextProduct.category}, rating: ${contextProduct.rating || "N/A"}/5, stock: ${contextProduct.stock > 0 ? "in stock" : "out of stock"}. Description: ${contextProduct.description || "N/A"}.`
+    : `Some products currently in the catalog: ${catalogSample.map((p) => `${p.name} (₹${p.price})`).join(", ")}.`
+}
+For order tracking, tell them to check the "My Orders" page. Returns are accepted within 7 days of delivery via the Orders page.
+Never invent prices, stock, or facts not given to you above.`;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
+        max_tokens: 150,
+        temperature: 0.6,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      console.warn(`[chatbot] OpenAI API error: ${res.status} ${await res.text()}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    return reply || null;
+  } catch (err) {
+    console.warn(`[chatbot] LLM call failed, falling back to rule-based: ${err.message}`);
+    return null;
+  }
+}
+
+// AI shopping assistant. Uses a real LLM (OpenAI) when OPENAI_API_KEY is
+// configured; otherwise falls back to the built-in rule-based responder below
+// so the chatbot always works, even with zero setup.
 exports.chatbot = async (req, res) => {
   try {
     const { message, productId } = req.body;
     const lower = (message || "").toLowerCase();
-    let reply =
-      "I'm your shopping assistant! You can ask me things like 'show me shoes under 2000' or 'what's trending?'";
 
-    // If the person is asking from a specific product page, try to answer
-    // about THAT product first before falling back to generic assistant replies.
     let contextProduct = null;
     if (productId) {
       contextProduct = await Product.findById(productId).lean();
     }
+
+    // Try the real LLM first (only if an API key is configured).
+    if (process.env.OPENAI_API_KEY) {
+      const catalogSample = contextProduct
+        ? []
+        : await Product.find().sort({ views: -1 }).limit(6).select("name price").lean();
+      const llmReply = await callLLM(message, contextProduct, catalogSample);
+      if (llmReply) {
+        res.json({ reply: llmReply, source: "llm" });
+        ChatLog.create({ message, reply: llmReply, user: req.user?._id }).catch(() => {});
+        return;
+      }
+    }
+
+    // Fallback: rule-based assistant (also used when no API key is set).
+    let reply =
+      "I'm your shopping assistant! You can ask me things like 'show me shoes under 2000' or 'what's trending?'";
 
     if (contextProduct && /price|cost|kitna|how much/.test(lower)) {
       reply = `${contextProduct.name} is priced at ₹${contextProduct.price}${
