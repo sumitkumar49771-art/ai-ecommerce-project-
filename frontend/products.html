@@ -36,10 +36,10 @@
           <option value="Grocery & Gourmet">Grocery & Gourmet</option>
         </select>
         </div>
-        <div class="filter-select-wrap" style="display:flex; align-items:center; gap:6px;">
-          <input type="number" id="min-price-input" placeholder="Min ₹" min="0" style="width:80px;" class="filter-select" onchange="loadProductsPage(1)" />
+        <div class="filter-select-wrap price-range-wrap">
+          <input type="number" id="min-price-input" placeholder="Min ₹" min="0" class="filter-select price-input" onchange="loadProductsPage(1)" />
           <span style="color:var(--muted);">–</span>
-          <input type="number" id="max-price-input" placeholder="Max ₹" min="0" style="width:80px;" class="filter-select" onchange="loadProductsPage(1)" />
+          <input type="number" id="max-price-input" placeholder="Max ₹" min="0" class="filter-select price-input" onchange="loadProductsPage(1)" />
         </div>
         <div class="filter-select-wrap">
           <select id="rating-select" class="filter-select" onchange="loadProductsPage(1)">

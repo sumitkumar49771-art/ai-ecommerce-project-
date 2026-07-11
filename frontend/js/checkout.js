@@ -305,7 +305,10 @@ async function handleCheckout() {
     try {
       razorpayPaymentData = await payWithRazorpay(shippingAddress.city, appliedCouponCode);
     } catch (err) {
-      alertBox.innerHTML = `<div class="alert alert-error">${err.message || "Payment was cancelled or failed."}</div>`;
+      const msg = err.message || "Payment was cancelled or failed.";
+      alertBox.innerHTML = `<div class="alert alert-error">${msg}</div>`;
+      alertBox.scrollIntoView({ behavior: "smooth", block: "center" });
+      showToast(msg, "error");
       btn.disabled = false;
       btn.textContent = "Place Order";
       return;
@@ -336,9 +339,27 @@ async function handleCheckout() {
 // payment, or rejects if the user cancels or the gateway isn't configured.
 function payWithRazorpay(city, couponCode) {
   return new Promise(async (resolve, reject) => {
+    // On slower mobile connections the Razorpay <script> tag can still be
+    // loading when the user taps "Place Order" for the first time. Instead
+    // of failing immediately, wait up to ~4s for it to become available.
     if (typeof Razorpay === "undefined") {
-      reject(new Error("Payment gateway script failed to load. Check your internet connection and try again."));
-      return;
+      const scriptReady = await new Promise((res) => {
+        let waited = 0;
+        const interval = setInterval(() => {
+          waited += 200;
+          if (typeof Razorpay !== "undefined") {
+            clearInterval(interval);
+            res(true);
+          } else if (waited >= 4000) {
+            clearInterval(interval);
+            res(false);
+          }
+        }, 200);
+      });
+      if (!scriptReady) {
+        reject(new Error("Payment gateway script failed to load. Check your internet connection and try again."));
+        return;
+      }
     }
 
     let orderData;
