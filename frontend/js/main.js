@@ -63,7 +63,7 @@ async function renderNavbar() {
           ? `<a href="wishlist.html">♡ Wishlist <span class="badge" id="wishlist-count" style="display:none;">0</span></a>`
           : ""
       }
-      <a href="cart.html">🛒 Cart</a>
+      <a href="cart.html">🛒 Cart <span class="badge" id="cart-count" style="display:none;">0</span></a>
       ${
         loggedIn
           ? `<a href="orders.html">👤 My Orders</a>
@@ -95,7 +95,10 @@ async function renderNavbar() {
     nav.dataset.categoryRowAdded = "true";
   }
 
-  if (loggedIn) updateWishlistCount();
+  if (loggedIn) {
+    updateWishlistCount();
+    updateCartCount();
+  }
   applyDarkModePreference();
 }
 
@@ -125,6 +128,26 @@ async function updateWishlistCount() {
     }
   } catch (err) {
     // silently ignore — wishlist count is a non-critical UI enhancement
+  }
+}
+
+// Shows the total number of items (sum of quantities) in the cart as a
+// badge next to the "Cart" link in the navbar. Call this after any
+// add/update/remove action so the badge always stays in sync.
+async function updateCartCount() {
+  try {
+    const cart = await apiRequest("/cart", "GET", null, true);
+    const badge = document.getElementById("cart-count");
+    if (!badge) return;
+    const totalQty = (cart.items || []).reduce((sum, i) => sum + i.quantity, 0);
+    if (totalQty > 0) {
+      badge.textContent = totalQty;
+      badge.style.display = "inline-block";
+    } else {
+      badge.style.display = "none";
+    }
+  } catch (err) {
+    // silently ignore — cart count is a non-critical UI enhancement
   }
 }
 

@@ -629,6 +629,7 @@ async function addToCartHandler(productId) {
   try {
     await apiRequest("/cart", "POST", { productId, quantity: 1 }, true);
     showToast("Added to cart!", "success");
+    updateCartCount();
   } catch (err) {
     showToast(err.message, "error");
   }

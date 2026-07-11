@@ -53,6 +53,7 @@ async function changeQty(productId, quantity) {
   try {
     await apiRequest(`/cart/${productId}`, "PUT", { quantity }, true);
     loadCart();
+    updateCartCount();
   } catch (err) {
     showToast(err.message, "error");
   }
@@ -62,6 +63,7 @@ async function removeItem(productId) {
   try {
     await apiRequest(`/cart/${productId}`, "DELETE", null, true);
     loadCart();
+    updateCartCount();
   } catch (err) {
     showToast(err.message, "error");
   }
