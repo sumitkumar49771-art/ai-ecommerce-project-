@@ -1,7 +1,42 @@
 # 🛒 ShopAI — AI Powered E-Commerce Platform
 ### 6 Weeks Industrial Training Project
 
+[![CI](https://github.com/sumitkumar49771-art/ai-ecommerce-project-/actions/workflows/ci.yml/badge.svg)](https://github.com/sumitkumar49771-art/ai-ecommerce-project-/actions/workflows/ci.yml)
+![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express.js-4.x-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Payments-Razorpay-0C2451?logo=razorpay&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-16%20passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+**🔗 Live Demo:** [ai-ecommerce-project-fe9j.onrender.com](https://ai-ecommerce-project-fe9j.onrender.com)
+*(hosted on Render's free tier — the first request after inactivity can take ~50s to wake up)*
+
+**Demo Logins:**
+| Role  | Email               | Password  |
+|-------|---------------------|-----------|
+| Admin | admin@example.com   | admin123  |
+| User  | user@example.com    | user1234  |
+
 A full-stack e-commerce web application built with **HTML/CSS/JavaScript**, **Node.js + Express.js**, and **MongoDB**, featuring a built-in **AI recommendation & smart search engine**, an **admin dashboard**, and **Razorpay payment integration**.
+
+---
+
+## 📸 Screenshots
+
+> Add your own screenshots here — drop PNG/JPG files into `docs/screenshots/` and
+> reference them like the rows below. A quick way to grab clean ones: open the
+> live demo, resize the browser window, and use your OS screenshot tool
+> (Win + Shift + S on Windows) instead of a full-tab capture so no browser
+> chrome/other tabs show up.
+
+| Home Page | Product Listing |
+|---|---|
+| ![Home](docs/screenshots/home.png) | ![Products](docs/screenshots/products.png) |
+
+| Admin Dashboard | Mobile View |
+|---|---|
+| ![Admin](docs/screenshots/admin.png) | ![Mobile](docs/screenshots/mobile.png) |
 
 ---
 
@@ -162,11 +197,34 @@ in your browser. (You can also open the `frontend/*.html` files directly
 with a Live Server extension — just make sure the backend is running on
 port 5000 since `frontend/js/api.js` points there.)
 
-### 4. Demo Logins (created by the seed script)
+### 4. Running Tests
+```bash
+cd backend
+npm test
+```
+16 Jest unit tests cover the AI recommendation engine (cosine similarity,
+similar-products ranking, smart-search NLU parsing, deal scoring) and the
+placeholder-image generator — the core logic-heavy pieces of the project.
+
+### 5. Demo Logins (created by the seed script)
 | Role  | Email               | Password  |
 |-------|---------------------|-----------|
 | Admin | admin@example.com   | admin123  |
 | User  | user@example.com    | user1234  |
+
+---
+
+## ✅ Testing & CI/CD
+
+- **Unit tests** (`backend/__tests__/`) run with **Jest**, focused on the
+  parts of the codebase with real logic to verify — the AI engine's math
+  (feature vectors, cosine similarity, deal scoring) and the smart-search
+  NLU parser — rather than trivial CRUD wrappers.
+- **GitHub Actions** (`.github/workflows/ci.yml`) runs automatically on
+  every push/PR to `main`: installs dependencies, syntax-checks every
+  backend and frontend JS file, and runs the full Jest suite. See the
+  **Actions** tab on GitHub for the run history, and the green badge at
+  the top of this README for current status.
 
 ---
 
