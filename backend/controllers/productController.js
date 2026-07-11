@@ -31,6 +31,7 @@ exports.getProducts = async (req, res) => {
       priceAsc: { price: 1 },
       priceDesc: { price: -1 },
       rating: { rating: -1 },
+      ratingAsc: { rating: 1 },
       newest: { createdAt: -1 },
     };
 
