@@ -22,6 +22,7 @@ const settingsRoutes = require("./routes/settingsRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/contact", contactRoutes);
 
 /* STATIC FRONTEND */
 app.use(express.static(path.join(__dirname, "../frontend")));

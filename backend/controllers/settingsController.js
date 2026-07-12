@@ -29,7 +29,7 @@ exports.updateSettings = async (req, res) => {
   try {
     const settings = await getOrCreateSettings();
     const allowed = [
-      "storeName", "supportEmail", "supportPhone", "currency", "freeDeliveryAbove", "returnPolicyDays",
+      "storeName", "supportEmail", "supportPhone", "supportAddress", "supportHours", "currency", "freeDeliveryAbove", "returnPolicyDays",
       "payment", "shippingZones", "saleEnabled", "saleDurationDays",
     ];
     allowed.forEach((key) => {
