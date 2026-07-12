@@ -449,10 +449,79 @@ function renderFilteredSection(prefix, gridId, emptyHtml) {
 }
 
 // Called by every filter control's onchange handler.
+// NOTE: the "featured" section only ever holds the 24 *newest* products
+// locally (see loadHomePage), so filtering that small cached list by
+// category/price/rating on the client will show "No products match" for
+// any category that isn't among those 24 newest items — even though the
+// store has plenty of matching products. To fix this, "featured" re-queries
+// the backend with the selected filters instead of filtering the local cache.
 function applySectionFilter(prefix) {
+  if (prefix === "featured") {
+    applyFeaturedFilter();
+    return;
+  }
+  if (prefix === "deals") {
+    applyDealsFilter();
+    return;
+  }
   const config = SECTION_FILTER_CONFIG[prefix];
   if (!config) return;
   renderFilteredSection(prefix, config.gridId, config.emptyHtml);
+}
+
+// "Today's Best Deals" ranks the deal score across the WHOLE catalog and
+// keeps only the top 24 — a category can have real deals that simply don't
+// make that global top 24. So re-fetch from the backend scoped to the
+// chosen category (the backend supports this — see aiController.getDeals),
+// instead of filtering the small already-loaded top-24 list on the client.
+async function applyDealsFilter() {
+  const grid = document.getElementById("deals-grid");
+  if (!grid) return;
+
+  const category = document.getElementById("deals-category-select")?.value || "";
+
+  const query = new URLSearchParams();
+  if (category) query.set("category", category);
+  query.set("limit", 24);
+
+  grid.innerHTML = "<p>Loading…</p>";
+  try {
+    const data = await apiRequest(`/ai/deals?${query.toString()}`);
+    sectionRawData.deals = data.deals;
+    renderFilteredSection("deals", "deals-grid", SECTION_FILTER_CONFIG.deals.emptyHtml);
+  } catch (err) {
+    grid.innerHTML = "<p>Could not load deals.</p>";
+  }
+}
+
+async function applyFeaturedFilter() {
+  const grid = document.getElementById("featured-grid");
+  if (!grid) return;
+
+  const category = document.getElementById("featured-category-select")?.value || "";
+  const minPrice = document.getElementById("featured-min-price")?.value || "";
+  const maxPrice = document.getElementById("featured-max-price")?.value || "";
+  const minRating = document.getElementById("featured-rating-select")?.value || "";
+  const sort = document.getElementById("featured-sort-select")?.value || "";
+
+  const query = new URLSearchParams();
+  if (category) query.set("category", category);
+  if (minPrice) query.set("minPrice", minPrice);
+  if (maxPrice) query.set("maxPrice", maxPrice);
+  if (minRating) query.set("minRating", minRating);
+  query.set("sort", sort || "newest");
+  query.set("limit", 24);
+
+  grid.innerHTML = "<p>Loading…</p>";
+  try {
+    const data = await apiRequest(`/products?${query.toString()}`);
+    sectionRawData.featured = data.products;
+    grid.innerHTML = data.products.length
+      ? data.products.map(productCard).join("")
+      : SECTION_FILTER_CONFIG.featured.emptyHtml;
+  } catch (err) {
+    grid.innerHTML = "<p>Could not load products.</p>";
+  }
 }
 
 const SECTION_FILTER_CONFIG = {

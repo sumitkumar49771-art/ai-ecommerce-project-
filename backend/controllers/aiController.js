@@ -177,7 +177,15 @@ exports.smartSearch = async (req, res) => {
 // "was ₹X" discounts, just real comparative pricing analysis.
 exports.getDeals = async (req, res) => {
   try {
-    const allProducts = await Product.find().lean();
+    // Optional category filter — without this, the deal score is computed
+    // and ranked across the ENTIRE catalog, then sliced to the top N. A
+    // category with genuinely good deals can easily fall outside that
+    // global top N (e.g. top 24), so selecting it client-side would show
+    // "No deals match these filters" even though real deals exist for it.
+    const filter = {};
+    if (req.query.category) filter.category = req.query.category;
+
+    const allProducts = await Product.find(filter).lean();
     const scored = computeDealScores(allProducts)
       .filter((p) => ["Excellent Deal", "Good Value"].includes(p.dealLabel))
       .sort((a, b) => b.dealScore - a.dealScore)
