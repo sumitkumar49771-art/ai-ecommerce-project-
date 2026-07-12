@@ -20,10 +20,10 @@
       <div>
         <h2>Get in Touch</h2>
         <ul class="contact-info-list">
-          <li><span class="icon">📍</span><span>Golden Avenue,<br/>Amritsar, Punjab, India - 143001</span></li>
-          <li><span class="icon">📞</span><span>+91 62806 43874</span></li>
-          <li><span class="icon">✉️</span><span>support@shopai.com</span></li>
-          <li><span class="icon">🕒</span><span>Mon - Sat, 9:00 AM - 7:00 PM IST</span></li>
+          <li><span class="icon">📍</span><span id="contact-info-address">Golden Avenue,<br/>Amritsar, Punjab, India - 143001</span></li>
+          <li><span class="icon">📞</span><span id="contact-info-phone">+91 62806 43874</span></li>
+          <li><span class="icon">✉️</span><span id="contact-info-email">support@shopai.com</span></li>
+          <li><span class="icon">🕒</span><span id="contact-info-hours">Mon - Sat, 9:00 AM - 7:00 PM IST</span></li>
         </ul>
 
         <h2 style="margin-top:24px;">Prefer Instant Answers?</h2>
@@ -63,14 +63,55 @@
   <script src="js/toast.js"></script>
   <script src="js/main.js"></script>
   <script>
-    function handleContactForm(e) {
+    // Pull support contact details from Settings (admin-editable) so this page
+    // always matches what's set in Admin → Settings, instead of being hardcoded.
+    // Falls back silently to the HTML defaults above if the API is unreachable.
+    async function loadContactInfo() {
+      try {
+        const settings = await apiRequest("/settings");
+        if (settings.supportAddress) {
+          document.getElementById("contact-info-address").innerHTML = settings.supportAddress.replace(/\n/g, "<br/>");
+        }
+        if (settings.supportPhone) {
+          document.getElementById("contact-info-phone").textContent = settings.supportPhone;
+        }
+        if (settings.supportEmail) {
+          document.getElementById("contact-info-email").textContent = settings.supportEmail;
+        }
+        if (settings.supportHours) {
+          document.getElementById("contact-info-hours").textContent = settings.supportHours;
+        }
+      } catch (error) {
+        // Keep the hardcoded defaults already in the HTML — no need to alarm the user.
+      }
+    }
+    loadContactInfo();
+
+    async function handleContactForm(e) {
       e.preventDefault();
       const name = document.getElementById("contact-name").value.trim();
-      document.getElementById("contact-name").value = "";
-      document.getElementById("contact-email").value = "";
-      document.getElementById("contact-subject").value = "";
-      document.getElementById("contact-message").value = "";
-      showToast(`Thanks ${name || "there"}! Your message has been received. We'll get back to you soon.`, "success");
+      const email = document.getElementById("contact-email").value.trim();
+      const subject = document.getElementById("contact-subject").value.trim();
+      const message = document.getElementById("contact-message").value.trim();
+
+      const submitBtn = e.target.querySelector("button[type=submit]");
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending...";
+
+      try {
+        await apiRequest("/contact", "POST", { name, email, subject, message });
+        document.getElementById("contact-name").value = "";
+        document.getElementById("contact-email").value = "";
+        document.getElementById("contact-subject").value = "";
+        document.getElementById("contact-message").value = "";
+        showToast(`Thanks ${name || "there"}! Your message has been received. We'll get back to you soon.`, "success");
+      } catch (error) {
+        showToast(error.message || "Something went wrong. Please try again.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
     }
   </script>
 </body>

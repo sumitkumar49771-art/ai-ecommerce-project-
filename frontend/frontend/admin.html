@@ -40,9 +40,6 @@
       <div class="admin-link" data-panel="search-analytics"><span class="admin-link-icon">🔍</span> Search Analytics</div>
       <div class="admin-link" data-panel="chat-logs"><span class="admin-link-icon">💬</span> AI Chat Logs</div>
 
-      <div class="admin-group-label">Support</div>
-      <div class="admin-link" data-panel="contact-messages"><span class="admin-link-icon">📩</span> Contact Messages</div>
-
       <div class="admin-group-label">Settings</div>
       <div class="admin-link" data-panel="general-settings"><span class="admin-link-icon">⚙️</span> General Settings</div>
       <div class="admin-link" data-panel="payment-settings"><span class="admin-link-icon">💳</span> Payment Settings</div>
@@ -334,20 +331,6 @@
           </div>
         </div>
 
-        <!-- ============ CONTACT MESSAGES PANEL ============ -->
-        <div class="admin-panel" id="panel-contact-messages">
-          <h1 class="admin-page-title">Contact Messages</h1>
-          <p class="admin-page-sub">Messages submitted through the storefront's Contact Us form.</p>
-          <div class="admin-card">
-            <table class="data-table">
-              <thead>
-                <tr><th>Status</th><th>Name</th><th>Email</th><th>Subject</th><th>Message</th><th>Date</th><th>Actions</th></tr>
-              </thead>
-              <tbody id="contact-messages-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- ============ GENERAL SETTINGS PANEL ============ -->
         <div class="admin-panel" id="panel-general-settings">
           <h1 class="admin-page-title">General Settings</h1>
@@ -360,8 +343,6 @@
             <div class="admin-form-row">
               <div class="form-group"><label>Support Email</label><input id="set-support-email" /></div>
               <div class="form-group"><label>Support Phone</label><input id="set-support-phone" /></div>
-              <div class="form-group"><label>Support Address</label><input id="set-support-address" /></div>
-              <div class="form-group"><label>Support Hours</label><input id="set-support-hours" /></div>
               <div class="form-group"><label>Free Delivery Above (₹)</label><input id="set-free-delivery" type="number" /></div>
               <div class="form-group"><label>Return Window (days)</label><input id="set-return-days" type="number" placeholder="e.g. 7" /></div>
             </div>

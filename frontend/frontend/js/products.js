@@ -4,7 +4,6 @@ const HERO_SLIDES = [
     tag: "electronics,gadgets", eyebrow: "Top Electronics Deals", heading: "Gadgets that", accent: "keep you ahead",
     sub: "Headphones, smart watches, speakers and more — curated by AI.",
     grad: "linear-gradient(160deg, #ffffff, #e9e3fc)",
-    img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
     svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="scr1" x1="0" y1="0" x2="1" y2="1">
@@ -33,7 +32,6 @@ const HERO_SLIDES = [
     tag: "fashion,clothing", eyebrow: "Trending Fashion", heading: "Style that's", accent: "made for you",
     sub: "Fresh looks in clothing, picked to match your taste.",
     grad: "linear-gradient(160deg, #ffffff, #fdefd8)",
-    img: "https://images.pexels.com/photos/31961165/pexels-photo-31961165.jpeg?auto=compress&cs=tinysrgb&w=900",
     svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="hood1" x1="0" y1="0" x2="0" y2="1">
@@ -52,7 +50,6 @@ const HERO_SLIDES = [
   {
     tag: "shoes,fashion", eyebrow: "Footwear Picks", heading: "Every step,", accent: "perfectly matched",
     sub: "From running shoes to formal wear — comfort meets style.",
-    img: "https://images.pexels.com/photos/18212364/pexels-photo-18212364.jpeg?auto=compress&cs=tinysrgb&w=900",
     grad: "linear-gradient(160deg, #ffffff, #dff3e6)",
     svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -72,7 +69,6 @@ const HERO_SLIDES = [
   {
     tag: "home,decor", eyebrow: "Home & Kitchen", heading: "Make your house", accent: "feel like home",
     sub: "Cookware, decor and appliances for everyday living.",
-    img: "https://images.pexels.com/photos/6758281/pexels-photo-6758281.jpeg?auto=compress&cs=tinysrgb&w=900",
     grad: "linear-gradient(160deg, #ffffff, #f6e4d8)",
     svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -93,7 +89,6 @@ const HERO_SLIDES = [
     tag: "beauty,cosmetics", eyebrow: "Beauty & Personal Care", heading: "Look good,", accent: "feel even better",
     sub: "Skincare, grooming and beauty essentials, just for you.",
     grad: "linear-gradient(160deg, #ffffff, #fbe0ea)",
-    img: "https://images.pexels.com/photos/4841273/pexels-photo-4841273.jpeg?auto=compress&cs=tinysrgb&w=900",
     svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="lip1" x1="0" y1="0" x2="0" y2="1">
@@ -169,28 +164,12 @@ function initHeroBanner() {
     (_, i) => `<button class="hero-banner-dot${i === 0 ? " active" : ""}" onclick="goToHeroSlide(${i})" aria-label="Slide ${i + 1}"></button>`
   ).join("");
 
-  function renderVisual(slide, container) {
-    if (slide.img) {
-      container.innerHTML = "";
-      const img = document.createElement("img");
-      img.src = slide.img;
-      img.alt = slide.eyebrow;
-      img.loading = "eager";
-      img.onerror = () => {
-        container.innerHTML = slide.svg;
-      };
-      container.appendChild(img);
-    } else {
-      container.innerHTML = slide.svg;
-    }
-  }
-
   function showSlide(i, immediate) {
     const slide = HERO_SLIDES[i];
 
     if (visualTile) {
       if (immediate) {
-        renderVisual(slide, visualTile);
+        visualTile.innerHTML = slide.svg;
         visualTile.style.background = slide.grad;
         visualTile.style.transform = "scale(1)";
         visualTile.style.opacity = "1";
@@ -198,7 +177,7 @@ function initHeroBanner() {
         visualTile.style.transform = "scale(0.85)";
         visualTile.style.opacity = "0";
         setTimeout(() => {
-          renderVisual(slide, visualTile);
+          visualTile.innerHTML = slide.svg;
           visualTile.style.background = slide.grad;
           visualTile.style.transform = "scale(1)";
           visualTile.style.opacity = "1";

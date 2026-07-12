@@ -29,7 +29,6 @@ function renderTopbar() {
       el.textContent = `🚚 Free Delivery on orders above ₹${settings.freeDeliveryAbove}`;
     }
     syncHomeFeatureCards(settings);
-    syncStoreBranding(settings);
     if (settings && settings.saleEnabled) {
       const left = document.getElementById("topbar-left");
       if (left) {
@@ -54,7 +53,7 @@ async function renderNavbar() {
 
   nav.className = "navbar";
   nav.innerHTML = `
-    <a href="index.html" class="logo" id="nav-logo">Shop<span>AI</span></a>
+    <a href="index.html" class="logo">Shop<span>AI</span></a>
     <div class="nav-search-wrap" style="position:relative;">
       <form class="nav-search" onsubmit="handleSmartSearch(event)">
         <input id="smart-search-input" placeholder="Search for products, brands and more..." autocomplete="off" oninput="handleSearchInput(this.value)" onblur="setTimeout(hideSearchSuggestions, 150)" />
@@ -74,6 +73,7 @@ async function renderNavbar() {
         loggedIn
           ? `<a href="orders.html">👤 My Orders</a>
              ${isAdmin() ? `<a href="admin.html" class="badge">⚙ Admin</a>` : ""}
+             <span>Hi, ${getUserName()}</span>
              <a href="#" onclick="logout()" class="btn btn-outline">Logout</a>`
           : `<a href="login.html" class="btn btn-outline">Login</a>
              <a href="register.html" class="btn">Sign Up</a>`
@@ -102,7 +102,7 @@ async function renderNavbar() {
         </div>
       </div>
       <a href="index.html" class="${currentPath === "index.html" ? "active" : ""}">Home</a>
-      ${NAV_CATEGORIES
+      ${NAV_CATEGORIES.slice(0, 7)
         .map(
           (c) =>
             `<a href="products.html?category=${encodeURIComponent(c)}" class="${
@@ -278,7 +278,7 @@ function renderFooter() {
     <div class="site-footer">
       <div class="footer-top">
         <div class="footer-col">
-          <h4 id="footer-logo">Shop<span style="color:#60a5fa">AI</span></h4>
+          <h4>Shop<span style="color:#60a5fa">AI</span></h4>
           <p>ShopAI is your smart shopping destination. We use AI to personalize your experience and bring you the best products.</p>
           <div class="footer-social">
             <a href="https://instagram.com/sumit_4673_" title="Instagram" target="_blank" rel="noopener">📷</a>
@@ -312,7 +312,7 @@ function renderFooter() {
         <div class="footer-col">
           <h4>Contact Us</h4>
           <p>Golden Avenue,<br/>Amritsar, Punjab, India - 143001</p>
-          <p id="footer-contact-info">+91 62806 43874<br/>support@shopai.com</p>
+          <p>+91 62806 43874<br/>support@shopai.com</p>
           <h4 style="margin-top:14px;">Payment Methods</h4>
           <div class="footer-payment">
             <span class="pay-badge" title="VISA">
@@ -573,41 +573,6 @@ function getSaleSettings() {
 /* Keeps the homepage "Free Delivery" / "Easy Returns" feature cards in sync
    with whatever the admin has configured in General Settings, instead of a
    hardcoded ₹499 / 7 days that never matched what admin actually set. */
-/* Pushes Store Name / Support Email / Support Phone (set in Admin → General
-   Settings) onto the navbar logo and footer, which previously stayed
-   hardcoded as "ShopAI" / the default contact details no matter what the
-   admin saved. */
-function syncStoreBranding(settings) {
-  if (!settings) return;
-
-  function applyLogoText(el, name) {
-    if (!el || !name) return;
-    const match = name.match(/^(.*?)(AI)$/i);
-    el.innerHTML = match
-      ? `${match[1]}<span style="color:inherit">${match[2]}</span>`
-      : name;
-  }
-
-  if (settings.storeName) {
-    applyLogoText(document.getElementById("nav-logo"), settings.storeName);
-    const footerLogo = document.getElementById("footer-logo");
-    if (footerLogo) {
-      const match = settings.storeName.match(/^(.*?)(AI)$/i);
-      footerLogo.innerHTML = match
-        ? `${match[1]}<span style="color:#60a5fa">${match[2]}</span>`
-        : settings.storeName;
-    }
-    document.title = document.title.replace(/ShopAI/g, settings.storeName);
-  }
-
-  const contactEl = document.getElementById("footer-contact-info");
-  if (contactEl && (settings.supportPhone || settings.supportEmail)) {
-    contactEl.innerHTML = `${settings.supportPhone || ""}${
-      settings.supportPhone && settings.supportEmail ? "<br/>" : ""
-    }${settings.supportEmail || ""}`;
-  }
-}
-
 function syncHomeFeatureCards(settings) {
   const deliveryEl = document.getElementById("home-free-delivery-text");
   if (deliveryEl && settings && settings.freeDeliveryAbove) {

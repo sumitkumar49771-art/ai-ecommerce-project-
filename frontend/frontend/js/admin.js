@@ -124,12 +124,6 @@ function setupSidebar() {
         return;
       }
 
-      if (panelKey === "contact-messages") {
-        if (titleEl) titleEl.textContent = "☰ Contact Messages";
-        loadContactMessages();
-        return;
-      }
-
       if (panelKey === "coupons") {
         if (titleEl) titleEl.textContent = "☰ Coupons";
         loadCoupons();
@@ -919,59 +913,6 @@ async function loadChatLogs() {
   }
 }
 
-/* ================= CONTACT MESSAGES ================= */
-async function loadContactMessages() {
-  const body = document.getElementById("contact-messages-table-body");
-  try {
-    const data = await apiRequest("/contact", "GET", null, true);
-    const messages = data.messages || [];
-    body.innerHTML = messages.length
-      ? messages
-          .map((m) => {
-            const statusLabel = m.read
-              ? `<span class="badge-tag badge-top" style="position:static;">Read</span>`
-              : `<span class="badge-tag badge-lowstock" style="position:static;">New</span>`;
-            return `
-        <tr style="${m.read ? "" : "font-weight:600;"}">
-          <td>${statusLabel}</td>
-          <td>${escapeHtml(m.name)}</td>
-          <td>${escapeHtml(m.email)}</td>
-          <td>${escapeHtml(m.subject)}</td>
-          <td style="max-width:280px; white-space:normal;">${escapeHtml(m.message)}</td>
-          <td>${new Date(m.createdAt).toLocaleString()}</td>
-          <td>
-            <span class="action-link" onclick="toggleContactMessageRead('${m._id}', ${!m.read})">${m.read ? "Mark Unread" : "Mark Read"}</span>
-            &nbsp;|&nbsp;
-            <span class="action-link danger" onclick="deleteContactMessage('${m._id}')">Delete</span>
-          </td>
-        </tr>`;
-          })
-          .join("")
-      : `<tr><td colspan="7">No messages received yet.</td></tr>`;
-  } catch (err) {
-    if (body) body.innerHTML = `<tr><td colspan="7">Could not load contact messages.</td></tr>`;
-  }
-}
-
-async function toggleContactMessageRead(id, newReadState) {
-  try {
-    await apiRequest(`/contact/${id}/read`, "PUT", { read: newReadState }, true);
-    loadContactMessages();
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-}
-
-async function deleteContactMessage(id) {
-  if (!confirm("Delete this message? This cannot be undone.")) return;
-  try {
-    await apiRequest(`/contact/${id}`, "DELETE", null, true);
-    loadContactMessages();
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-}
-
 /* ================= COUPONS ================= */
 async function loadCoupons() {
   const body = document.getElementById("coupons-table-body");
@@ -1067,8 +1008,6 @@ async function loadGeneralSettings() {
     document.getElementById("set-currency").value = settings.currency || "";
     document.getElementById("set-support-email").value = settings.supportEmail || "";
     document.getElementById("set-support-phone").value = settings.supportPhone || "";
-    document.getElementById("set-support-address").value = settings.supportAddress || "";
-    document.getElementById("set-support-hours").value = settings.supportHours || "";
     document.getElementById("set-free-delivery").value = settings.freeDeliveryAbove || 0;
     document.getElementById("set-return-days").value = settings.returnPolicyDays || 7;
     document.getElementById("set-sale-duration").value = settings.saleEnabled ? String(settings.saleDurationDays || 3) : "0";
@@ -1085,8 +1024,6 @@ async function saveGeneralSettings() {
     currency: document.getElementById("set-currency").value.trim(),
     supportEmail: document.getElementById("set-support-email").value.trim(),
     supportPhone: document.getElementById("set-support-phone").value.trim(),
-    supportAddress: document.getElementById("set-support-address").value.trim(),
-    supportHours: document.getElementById("set-support-hours").value.trim(),
     freeDeliveryAbove: parseFloat(document.getElementById("set-free-delivery").value) || 0,
     returnPolicyDays: parseInt(document.getElementById("set-return-days").value, 10) || 7,
     // Picking any duration other than "Off" automatically turns the sale on;
