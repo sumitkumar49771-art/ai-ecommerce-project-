@@ -52,11 +52,13 @@ async function renderNavbar() {
   nav.className = "navbar";
   nav.innerHTML = `
     <a href="index.html" class="logo">Shop<span>AI</span></a>
-    <form class="nav-search" onsubmit="handleSmartSearch(event)" style="position:relative;">
-      <input id="smart-search-input" placeholder="Search for products, brands and more..." autocomplete="off" oninput="handleSearchInput(this.value)" onblur="setTimeout(hideSearchSuggestions, 150)" />
-      <button type="submit">🔍 Search</button>
+    <div class="nav-search-wrap" style="position:relative; flex:1; max-width:620px;">
+      <form class="nav-search" onsubmit="handleSmartSearch(event)">
+        <input id="smart-search-input" placeholder="Search for products, brands and more..." autocomplete="off" oninput="handleSearchInput(this.value)" onblur="setTimeout(hideSearchSuggestions, 150)" />
+        <button type="submit">🔍 Search</button>
+      </form>
       <div id="search-suggestions" class="search-suggestions" style="display:none;"></div>
-    </form>
+    </div>
     <div class="nav-links">
       <a href="#" onclick="toggleDarkMode(); return false;" title="Toggle dark mode" id="dark-mode-toggle">🌙</a>
       ${
