@@ -1,4 +1,112 @@
-/* ---------------- HERO ENHANCEMENTS ---------------- */
+/* ---------------- HERO BANNER — rotating poster + single search ---------------- */
+const HERO_SLIDES = [
+  {
+    tag: "electronics,gadgets", eyebrow: "Top Electronics Deals", heading: "Gadgets that", accent: "keep you ahead",
+    sub: "Headphones, smart watches, speakers and more — curated by AI.",
+    grad: "linear-gradient(160deg, #ffffff, #e9e3fc)",
+    svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="scr1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#ec4899"/>
+        </linearGradient>
+        <linearGradient id="body1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2b2640"/><stop offset="100%" stop-color="#181425"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="160" cy="272" rx="120" ry="14" fill="#4c1d95" opacity="0.12"/>
+      <path d="M52 78 h164 a10 10 0 0 1 10 10 v110 a10 10 0 0 1 -10 10 H52 a10 10 0 0 1 -10 -10 V88 a10 10 0 0 1 10 -10 Z" fill="url(#body1)"/>
+      <rect x="58" y="86" width="152" height="106" rx="4" fill="url(#scr1)"/>
+      <path d="M28 208 h228 l-14 20 a14 14 0 0 1 -11 6 H53 a14 14 0 0 1 -11 -6 Z" fill="#332d4d"/>
+      <rect x="18" y="214" width="46" height="58" rx="15" fill="#15121f"/>
+      <rect x="26" y="224" width="30" height="38" rx="8" fill="#3b3556"/>
+      <rect x="34" y="216" width="14" height="6" rx="2" fill="#15121f"/>
+      <rect x="150" y="214" width="76" height="52" rx="14" fill="#f4f1fb" stroke="#ded7f3" stroke-width="2"/>
+      <circle cx="176" cy="240" r="12" fill="#fff" stroke="#ded7f3" stroke-width="2"/>
+      <circle cx="202" cy="240" r="12" fill="#fff" stroke="#ded7f3" stroke-width="2"/>
+      <rect x="246" y="66" width="58" height="122" rx="16" fill="#15121f"/>
+      <rect x="251" y="74" width="48" height="98" rx="8" fill="url(#scr1)"/>
+      <circle cx="275" cy="180" r="3" fill="#4b4468"/>
+    </svg>`,
+  },
+  {
+    tag: "fashion,clothing", eyebrow: "Trending Fashion", heading: "Style that's", accent: "made for you",
+    sub: "Fresh looks in clothing, picked to match your taste.",
+    grad: "linear-gradient(160deg, #ffffff, #fdefd8)",
+    svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="hood1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#ea580c"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="160" cy="278" rx="110" ry="12" fill="#7c2d12" opacity="0.12"/>
+      <rect x="150" y="36" width="20" height="30" rx="6" fill="#a3a3a3"/>
+      <path d="M110 74 Q160 44 210 74 L236 108 L206 128 L206 250 Q206 262 194 262 H126 Q114 262 114 250 V128 L84 108 Z" fill="url(#hood1)"/>
+      <path d="M136 74 Q160 96 184 74" fill="none" stroke="#fde68a" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="150" cy="150" r="4" fill="#fff7ed" opacity="0.7"/>
+      <circle cx="150" cy="180" r="4" fill="#fff7ed" opacity="0.7"/>
+      <rect x="140" y="160" width="40" height="34" rx="8" fill="#c2410c" opacity="0.5"/>
+    </svg>`,
+  },
+  {
+    tag: "shoes,fashion", eyebrow: "Footwear Picks", heading: "Every step,", accent: "perfectly matched",
+    sub: "From running shoes to formal wear — comfort meets style.",
+    grad: "linear-gradient(160deg, #ffffff, #dff3e6)",
+    svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="shoe1" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#0891b2"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="165" cy="238" rx="130" ry="14" fill="#065f46" opacity="0.12"/>
+      <path d="M40 210 Q40 170 80 160 L110 150 Q140 128 176 132 L220 140 Q260 146 278 176 Q286 192 270 206 L266 214 Q260 224 246 224 H62 Q44 224 40 210 Z" fill="url(#shoe1)"/>
+      <path d="M110 150 Q140 128 176 132 L220 140 Q214 158 190 160 Q150 162 118 168 Z" fill="#ecfeff" opacity="0.85"/>
+      <path d="M40 210 H270" stroke="#064e3b" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+      <circle cx="140" cy="150" r="3" fill="#fff"/>
+      <circle cx="160" cy="146" r="3" fill="#fff"/>
+      <circle cx="180" cy="146" r="3" fill="#fff"/>
+    </svg>`,
+  },
+  {
+    tag: "home,decor", eyebrow: "Home & Kitchen", heading: "Make your house", accent: "feel like home",
+    sub: "Cookware, decor and appliances for everyday living.",
+    grad: "linear-gradient(160deg, #ffffff, #f6e4d8)",
+    svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="chair1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#475569"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="160" cy="270" rx="120" ry="13" fill="#1e293b" opacity="0.12"/>
+      <path d="M78 120 Q78 88 110 88 H210 Q242 88 242 120 V172 H78 Z" fill="url(#chair1)"/>
+      <rect x="60" y="160" width="200" height="56" rx="18" fill="#64748b"/>
+      <rect x="68" y="216" width="26" height="46" rx="6" fill="#334155"/>
+      <rect x="226" y="216" width="26" height="46" rx="6" fill="#334155"/>
+      <rect x="50" y="150" width="26" height="60" rx="12" fill="#7c8ba1"/>
+      <rect x="244" y="150" width="26" height="60" rx="12" fill="#7c8ba1"/>
+    </svg>`,
+  },
+  {
+    tag: "beauty,cosmetics", eyebrow: "Beauty & Personal Care", heading: "Look good,", accent: "feel even better",
+    sub: "Skincare, grooming and beauty essentials, just for you.",
+    grad: "linear-gradient(160deg, #ffffff, #fbe0ea)",
+    svg: `<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lip1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#be185d"/>
+        </linearGradient>
+        <linearGradient id="bottle1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fbcfe8"/><stop offset="100%" stop-color="#f9a8d4"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="165" cy="272" rx="120" ry="13" fill="#831843" opacity="0.12"/>
+      <rect x="70" y="150" width="70" height="110" rx="10" fill="url(#bottle1)"/>
+      <rect x="88" y="120" width="34" height="34" rx="4" fill="#fde68a"/>
+      <rect x="94" y="104" width="22" height="20" rx="3" fill="#fbbf24"/>
+      <path d="M198 90 Q210 60 228 58 Q246 56 250 78 Q252 96 232 110 L232 220 Q232 236 216 236 Q200 236 200 220 L200 110 Q186 100 190 82 Z" fill="url(#lip1)"/>
+      <rect x="196" y="220" width="40" height="40" rx="8" fill="#831843"/>
+    </svg>`,
+  },
+];
 const HERO_QUERIES = [
   "shoes under 2000",
   "wireless headphones",
@@ -39,32 +147,77 @@ function typewriterLoop(input) {
   typeQuery();
 }
 
-async function populateHeroCards() {
-  const visual = document.getElementById("hero-visual");
-  if (!visual) return;
-  try {
-    const data = await apiRequest("/products?limit=3&sort=rating");
-    const cards = visual.querySelectorAll(".float-card");
-    data.products.forEach((p, i) => {
-      const card = cards[i];
-      if (!card) return;
-      card.innerHTML = `
-        <span class="ai-match-badge">✨ ${Math.round((p.rating / 5) * 100)}% match</span>
-        <img src="${p.image}" class="float-card-img" style="object-fit:cover;" onerror="this.onerror=null;this.src=placeholderImage('${escJs(p.name)}','${escJs(p.category)}');" />
-        <div class="float-card-body">
-          <div style="font-size:12px; font-weight:700; color:#1f2937; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
-          <div style="font-size:12px; color:#3b82f6; font-weight:700;">₹${p.price}</div>
-        </div>`;
-    });
-  } catch (err) {
-    // Hero still looks fine with skeleton cards if this fails
+// Crossfades between two stacked background layers so the new poster image
+// is fully loaded before it fades in — avoids a blank flash mid-transition.
+function initHeroBanner() {
+  const banner = document.getElementById("hero-banner");
+  if (!banner) return;
+
+  const visualTile = document.getElementById("hero-visual-tile");
+  const eyebrowEl = document.getElementById("hero-banner-eyebrow");
+  const headingEl = document.getElementById("hero-banner-heading");
+  const subEl = document.getElementById("hero-banner-sub");
+  const dotsEl = document.getElementById("hero-banner-dots");
+  let slideIndex = 0;
+
+  dotsEl.innerHTML = HERO_SLIDES.map(
+    (_, i) => `<button class="hero-banner-dot${i === 0 ? " active" : ""}" onclick="goToHeroSlide(${i})" aria-label="Slide ${i + 1}"></button>`
+  ).join("");
+
+  function showSlide(i, immediate) {
+    const slide = HERO_SLIDES[i];
+
+    if (visualTile) {
+      if (immediate) {
+        visualTile.innerHTML = slide.svg;
+        visualTile.style.background = slide.grad;
+        visualTile.style.transform = "scale(1)";
+        visualTile.style.opacity = "1";
+      } else {
+        visualTile.style.transform = "scale(0.85)";
+        visualTile.style.opacity = "0";
+        setTimeout(() => {
+          visualTile.innerHTML = slide.svg;
+          visualTile.style.background = slide.grad;
+          visualTile.style.transform = "scale(1)";
+          visualTile.style.opacity = "1";
+        }, 250);
+      }
+    }
+
+    if (immediate) {
+      eyebrowEl.innerHTML = `<span class="pulse-dot"></span> ${slide.eyebrow}`;
+      headingEl.innerHTML = `${slide.heading}<br /><span class="accent">${slide.accent}</span>`;
+      subEl.textContent = slide.sub;
+      [eyebrowEl, headingEl, subEl].forEach((el) => (el.style.opacity = "1"));
+    } else {
+      [eyebrowEl, headingEl, subEl].forEach((el) => (el.style.opacity = "0"));
+      setTimeout(() => {
+        eyebrowEl.innerHTML = `<span class="pulse-dot"></span> ${slide.eyebrow}`;
+        headingEl.innerHTML = `${slide.heading}<br /><span class="accent">${slide.accent}</span>`;
+        subEl.textContent = slide.sub;
+        [eyebrowEl, headingEl, subEl].forEach((el) => (el.style.opacity = "1"));
+      }, 300);
+    }
+
+    dotsEl.querySelectorAll(".hero-banner-dot").forEach((d, idx) => d.classList.toggle("active", idx === i));
+    slideIndex = i;
   }
+
+  window.goToHeroSlide = (i) => {
+    clearInterval(banner._heroTimer);
+    showSlide(i);
+    banner._heroTimer = setInterval(() => showSlide((slideIndex + 1) % HERO_SLIDES.length), 4500);
+  };
+
+  showSlide(0, true);
+  banner._heroTimer = setInterval(() => showSlide((slideIndex + 1) % HERO_SLIDES.length), 4500);
 }
 
 function initHero() {
-  const input = document.getElementById("hero-search-input");
+  const input = document.getElementById("smart-search-input");
   if (input) typewriterLoop(input);
-  populateHeroCards();
+  initHeroBanner();
 }
 
 /* ---------------- HOME PAGE ---------------- */
@@ -107,6 +260,15 @@ function priceHtml(p) {
   return `<span class="product-price">₹${p.price}</span>`;
 }
 
+// Short, single-line teaser of what the product actually is/does, shown on
+// every product card (home sections, listing page, wishlist, etc.) so
+// shoppers don't have to open the detail page just to know what it is.
+function productDescSnippet(p) {
+  if (!p.description) return "";
+  const text = p.description.length > 70 ? p.description.slice(0, 70).trim() + "…" : p.description;
+  return `<p class="product-desc">${text}</p>`;
+}
+
 function productCard(p) {
   const isWishlisted = currentWishlistIds.has(p._id);
   return `
@@ -124,6 +286,7 @@ function productCard(p) {
       <div class="product-info">
         <span class="product-cat">${p.category}</span>
         <h3>${p.name}</h3>
+        ${productDescSnippet(p)}
         <div class="product-rating">
           <span class="stars">${starRating(p.rating || 4)}</span>
           <span class="rating-count">(${p.numReviews || 0})</span>
@@ -188,24 +351,130 @@ async function toggleDetailWishlist(productId) {
   }
 }
 
+/* ---------- GENERIC FILTER BAR (used on every product section) ----------
+   Renders the same sort/category/price/rating controls used on the
+   Products page and wires them up to re-filter a locally-held array of
+   products, so sections like Featured/Deals/Sale/Wishlist can each get a
+   full filter bar without hitting the API on every change. */
+function filterBarHtml(prefix) {
+  const catOptions = Object.keys(CATEGORY_ICONS)
+    .map((cat) => `<option value="${cat}">${cat}</option>`)
+    .join("");
+  return `
+    <div class="filter-bar">
+      <div class="filter-select-wrap">
+        <select id="${prefix}-sort-select" class="filter-select" onchange="applySectionFilter('${prefix}')">
+          <option value="">Sort: Default</option>
+          <option value="priceAsc">Price: Low to High</option>
+          <option value="priceDesc">Price: High to Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="ratingAsc">Rating: Low to High</option>
+        </select>
+      </div>
+      <div class="filter-select-wrap">
+        <select id="${prefix}-category-select" class="filter-select" onchange="applySectionFilter('${prefix}')">
+          <option value="">All Categories</option>
+          ${catOptions}
+        </select>
+      </div>
+      <div class="filter-select-wrap price-range-wrap">
+        <input type="number" id="${prefix}-min-price" placeholder="Min ₹" min="0" class="filter-select price-input" onchange="applySectionFilter('${prefix}')" />
+        <span style="color:var(--muted);">–</span>
+        <input type="number" id="${prefix}-max-price" placeholder="Max ₹" min="0" class="filter-select price-input" onchange="applySectionFilter('${prefix}')" />
+      </div>
+      <div class="filter-select-wrap">
+        <select id="${prefix}-rating-select" class="filter-select" onchange="applySectionFilter('${prefix}')">
+          <option value="">Any Rating</option>
+          <option value="4">4★ & up</option>
+          <option value="3">3★ & up</option>
+          <option value="2">2★ & up</option>
+        </select>
+      </div>
+    </div>`;
+}
+
+// Holds the unfiltered product list for every section that has its own
+// filter bar, keyed by prefix (e.g. "featured", "deals", "sale", "wishlist").
+const sectionRawData = {};
+
+function renderFilteredSection(prefix, gridId, emptyHtml) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  const raw = sectionRawData[prefix] || [];
+
+  const category = document.getElementById(`${prefix}-category-select`)?.value || "";
+  const minPrice = parseFloat(document.getElementById(`${prefix}-min-price`)?.value) || null;
+  const maxPrice = parseFloat(document.getElementById(`${prefix}-max-price`)?.value) || null;
+  const minRating = parseFloat(document.getElementById(`${prefix}-rating-select`)?.value) || null;
+  const sort = document.getElementById(`${prefix}-sort-select`)?.value || "";
+
+  let list = raw.filter((p) => {
+    if (category && p.category !== category) return false;
+    if (minPrice !== null && p.price < minPrice) return false;
+    if (maxPrice !== null && p.price > maxPrice) return false;
+    if (minRating !== null && (p.rating || 0) < minRating) return false;
+    return true;
+  });
+
+  const sorters = {
+    priceAsc: (a, b) => a.price - b.price,
+    priceDesc: (a, b) => b.price - a.price,
+    rating: (a, b) => (b.rating || 0) - (a.rating || 0),
+    ratingAsc: (a, b) => (a.rating || 0) - (b.rating || 0),
+  };
+  if (sorters[sort]) list = [...list].sort(sorters[sort]);
+
+  grid.innerHTML = list.length ? list.map(productCard).join("") : emptyHtml;
+}
+
+// Called by every filter control's onchange handler.
+function applySectionFilter(prefix) {
+  const config = SECTION_FILTER_CONFIG[prefix];
+  if (!config) return;
+  renderFilteredSection(prefix, config.gridId, config.emptyHtml);
+}
+
+const SECTION_FILTER_CONFIG = {
+  featured: { gridId: "featured-grid", emptyHtml: "<p>No products match these filters.</p>" },
+  deals: { gridId: "deals-grid", emptyHtml: "<p>No deals match these filters.</p>" },
+  sale: { gridId: "sale-grid", emptyHtml: "<p>No sale items match these filters.</p>" },
+  wishlist: {
+    gridId: "wishlist-grid",
+    emptyHtml: `
+      <div class="empty-state">
+        <span class="empty-icon">🤍</span>
+        <h3>No items match these filters</h3>
+        <p>Try adjusting or clearing the filters above.</p>
+      </div>`,
+  },
+};
+
 async function loadWishlistPage() {
   const grid = document.getElementById("wishlist-grid");
+  const filterBarEl = document.getElementById("wishlist-filter-bar");
+  if (filterBarEl) filterBarEl.innerHTML = filterBarHtml("wishlist");
   if (!isLoggedIn()) {
+    if (filterBarEl) filterBarEl.style.display = "none";
     grid.innerHTML = `<p>Please <a href="login.html">login</a> to view your wishlist.</p>`;
     return;
   }
   try {
     const wishlist = await apiRequest("/auth/wishlist", "GET", null, true);
     currentWishlistIds = new Set(wishlist.map((p) => p._id));
-    grid.innerHTML = wishlist.length
-      ? wishlist.map(productCard).join("")
-      : `
+    sectionRawData.wishlist = wishlist;
+    if (wishlist.length === 0) {
+      if (filterBarEl) filterBarEl.style.display = "none";
+      grid.innerHTML = `
         <div class="empty-state">
           <span class="empty-icon">🤍</span>
           <h3>Your wishlist is empty</h3>
           <p>Save items you love here so you don't lose track of them.</p>
           <a class="btn" href="products.html">Browse Products</a>
         </div>`;
+      return;
+    }
+    if (filterBarEl) filterBarEl.style.display = "";
+    renderFilteredSection("wishlist", "wishlist-grid", SECTION_FILTER_CONFIG.wishlist.emptyHtml);
   } catch (err) {
     grid.innerHTML = "<p>Could not load wishlist.</p>";
   }
@@ -242,11 +511,12 @@ async function loadRecentlyViewed() {
 async function loadDeals() {
   const grid = document.getElementById("deals-grid");
   if (!grid) return;
+  const bar = document.getElementById("deals-filter-bar");
+  if (bar) bar.innerHTML = filterBarHtml("deals");
   try {
-    const data = await apiRequest("/ai/deals?limit=4");
-    grid.innerHTML = data.deals.length
-      ? data.deals.map(productCard).join("")
-      : "<p>No standout deals right now — check back soon.</p>";
+    const data = await apiRequest("/ai/deals?limit=24");
+    sectionRawData.deals = data.deals;
+    renderFilteredSection("deals", "deals-grid", SECTION_FILTER_CONFIG.deals.emptyHtml);
   } catch (err) {
     grid.innerHTML = "<p>Could not load deals. Is the backend running?</p>";
   }
@@ -261,10 +531,13 @@ async function loadHomePage() {
   loadHomeSaleSection();
   const grid = document.getElementById("featured-grid");
   const recGrid = document.getElementById("recommended-grid");
+  const featuredBar = document.getElementById("featured-filter-bar");
+  if (featuredBar) featuredBar.innerHTML = filterBarHtml("featured");
 
   try {
-    const data = await apiRequest("/products?limit=8&sort=newest");
-    if (grid) grid.innerHTML = data.products.map(productCard).join("");
+    const data = await apiRequest("/products?limit=24&sort=newest");
+    sectionRawData.featured = data.products;
+    if (grid) renderFilteredSection("featured", "featured-grid", SECTION_FILTER_CONFIG.featured.emptyHtml);
   } catch (err) {
     if (grid) grid.innerHTML = `<p>Could not load products. Is the backend running?</p>`;
   }
@@ -298,9 +571,12 @@ async function loadHomeSaleSection() {
   }
 
   try {
-    const data = await apiRequest("/products?deal=true&limit=4&sort=newest");
+    const data = await apiRequest("/products?deal=true&limit=24&sort=newest");
     if (data.products.length) {
-      grid.innerHTML = data.products.map(productCard).join("");
+      sectionRawData.sale = data.products;
+      const saleBar = document.getElementById("sale-filter-bar");
+      if (saleBar) saleBar.innerHTML = filterBarHtml("sale");
+      renderFilteredSection("sale", "sale-grid", SECTION_FILTER_CONFIG.sale.emptyHtml);
       section.style.display = "block";
       startSaleCountdown("home-sale-countdown", settings.saleEndsAt);
     } else {
@@ -311,18 +587,33 @@ async function loadHomeSaleSection() {
   }
 }
 
+
 /* ---------- PRODUCTS PAGE ---------- */
 async function loadProductsPage(page = 1) {
   const grid = document.getElementById("products-grid");
   const params = new URLSearchParams(window.location.search);
   const category = params.get("category") || "";
   const deal = params.get("deal") === "true";
-  const sort = document.getElementById("sort-select")?.value || "";
+  const sortSelectEl = document.getElementById("sort-select");
+  if (deal && sortSelectEl && page === 1 && !sortSelectEl.dataset.dealDefaultApplied) {
+    sortSelectEl.value = "rating";
+    sortSelectEl.dataset.dealDefaultApplied = "true";
+  }
+  const sort = sortSelectEl?.value || "";
   const minPrice = document.getElementById("min-price-input")?.value || "";
   const maxPrice = document.getElementById("max-price-input")?.value || "";
   const minRating = document.getElementById("rating-select")?.value || "";
 
   showSaleBannerIfNeeded(deal);
+
+  const titleEl = document.getElementById("products-page-title");
+  if (titleEl) {
+    titleEl.textContent = deal
+      ? "🤖 Personalized Deals for You"
+      : category
+      ? category
+      : "All Products";
+  }
 
   try {
     await loadWishlistIds();
