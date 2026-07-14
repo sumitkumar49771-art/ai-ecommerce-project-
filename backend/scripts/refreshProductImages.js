@@ -25,9 +25,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function run() {
   await connectDB();
 
-  if (!process.env.PEXELS_API_KEY && !process.env.PIXABAY_API_KEY) {
+  if (!process.env.PEXELS_API_KEY && !process.env.PIXABAY_API_KEY && !process.env.UNSPLASH_ACCESS_KEY) {
     console.log(
-      "⚠️  No PEXELS_API_KEY or PIXABAY_API_KEY found in backend/.env — every product will get the generated placeholder card instead of a real photo. Add a key and re-run if you want real photos."
+      "⚠️  No PEXELS_API_KEY, PIXABAY_API_KEY, or UNSPLASH_ACCESS_KEY found in backend/.env — every product will get the generated placeholder card instead of a real photo. Add a key and re-run if you want real photos."
     );
   }
 

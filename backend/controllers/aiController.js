@@ -212,11 +212,20 @@ exports.getProductDealScore = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// Calls OpenAI's chat completion API for a natural-language shopping assistant.
-// Returns null on any failure so the caller can fall back to the rule-based bot.
+// Calls a chat-completion LLM API for a natural-language shopping assistant.
+// Prefers OpenAI if configured; otherwise falls back to Groq (also
+// OpenAI-format, but free-tier — no credit card needed). Returns null on
+// any failure so the caller can fall back further to the rule-based bot.
 async function callLLM(message, contextProduct, catalogSample) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!openaiKey && !groqKey) return null;
+
+  // Groq's API is OpenAI-format-compatible, so the same request body works
+  // for both — only the base URL, auth key, and model name change.
+  const provider = openaiKey
+    ? { url: "https://api.openai.com/v1/chat/completions", key: openaiKey, model: "gpt-4o-mini", name: "OpenAI" }
+    : { url: "https://api.groq.com/openai/v1/chat/completions", key: groqKey, model: "llama-3.1-8b-instant", name: "Groq" };
 
   const systemPrompt = `You are ShopAI's friendly shopping assistant for an e-commerce store.
 Keep replies short (1-3 sentences), helpful, and focused on shopping — products, orders, returns, pricing.
@@ -232,14 +241,14 @@ Never invent prices, stock, or facts not given to you above.`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 12000);
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch(provider.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${provider.key}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: provider.model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
@@ -252,12 +261,17 @@ Never invent prices, stock, or facts not given to you above.`;
     clearTimeout(timeout);
 
     if (!res.ok) {
-      console.warn(`[chatbot] OpenAI API error: ${res.status} ${await res.text()}`);
+      console.warn(`[chatbot] ${provider.name} API error: ${res.status} ${await res.text()}`);
       return null;
     }
 
     const data = await res.json();
     const reply = data.choices?.[0]?.message?.content?.trim();
+    if (reply) {
+      console.log(`✅ [chatbot] Got a real AI reply from ${provider.name}.`);
+    } else {
+      console.warn(`⚠️  [chatbot] ${provider.name} responded but with no usable text:`, JSON.stringify(data));
+    }
     return reply || null;
   } catch (err) {
     console.warn(`[chatbot] LLM call failed, falling back to rule-based: ${err.message}`);
@@ -278,8 +292,8 @@ exports.chatbot = async (req, res) => {
       contextProduct = await Product.findById(productId).lean();
     }
 
-    // Try the real LLM first (only if an API key is configured).
-    if (process.env.OPENAI_API_KEY) {
+    // Try the real LLM first (if either OpenAI or Groq is configured).
+    if (process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY) {
       const catalogSample = contextProduct
         ? []
         : await Product.find().sort({ views: -1 }).limit(6).select("name price").lean();

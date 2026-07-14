@@ -9,7 +9,7 @@
  * How it works (in priority order):
  *   1. Curated overrides — hand-picked, guaranteed-correct URLs.
  *   2. Books — real official cover art via the free Google Books API.
- *   3. Live stock-photo search — Pexels first, then Pixabay.
+ *   3. Live stock-photo search — Pexels, then Pixabay, then Unsplash.
  *   4. Category-only broad search — if the specific product name found
  *      nothing, try again with just the category (e.g. "shoes"), which
  *      almost always succeeds.
@@ -253,6 +253,61 @@ async function searchPixabayCandidates(name, category) {
   return [];
 }
 
+// Unsplash — third stock-photo source, tried after Pexels and Pixabay both
+// come up empty for a given product. Same strict-keyword-then-relax
+// pattern as the other two, so it slots into the exact same fallback
+// chain without changing any of the matching rules.
+async function runUnsplashQuery(query, keywords, category, accessKey, requireAllKeywords) {
+  const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=30`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+  try {
+    const resp = await fetch(url, {
+      headers: { Authorization: `Client-ID ${accessKey}` },
+      signal: controller.signal,
+    });
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const results = Array.isArray(data.results) ? data.results : [];
+
+    return results
+      .filter((item) => {
+        const text = `${item.alt_description || ""} ${item.description || ""} ${
+          (item.tags || []).map((t) => t.title).join(" ")
+        }`.toLowerCase();
+        const matches = requireAllKeywords
+          ? keywords.every((k) => text.includes(k))
+          : keywords.some((k) => text.includes(k));
+        return matches && !looksLikeLifestylePhoto(text, category);
+      })
+      .map((item) => item.urls && (item.urls.regular || item.urls.small))
+      .filter(Boolean);
+  } catch (err) {
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function searchUnsplashCandidates(name, category) {
+  if (typeof fetch !== "function") return [];
+  const accessKey = process.env.UNSPLASH_ACCESS_KEY;
+  if (!accessKey) return [];
+
+  const keywords = significantWords(name);
+  if (keywords.length === 0) return [];
+  const topKeywords = keywords.slice(0, 3);
+  const query = topKeywords.join(" ");
+
+  const strict = await runUnsplashQuery(query, topKeywords, category, accessKey, true);
+  if (strict.length > 0) return strict;
+
+  if (topKeywords.length > 1) {
+    return runUnsplashQuery(query, topKeywords, category, accessKey, false);
+  }
+  return [];
+}
+
 const CATEGORY_SEARCH_TERMS = {
   "Footwear": "shoes footwear product",
   "Electronics": "electronics gadget product",
@@ -414,6 +469,33 @@ async function searchCategoryBroadCandidates(category) {
     }
   }
 
+  if (process.env.UNSPLASH_ACCESS_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const resp = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(term)}&per_page=30`,
+        {
+          headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeout);
+      if (resp.ok) {
+        const data = await resp.json();
+        const results = Array.isArray(data.results) ? data.results : [];
+        results
+          .filter((item) => !looksLikeLifestylePhoto((item.alt_description || ""), category))
+          .forEach((item) => {
+            const u = item.urls && (item.urls.regular || item.urls.small);
+            if (u) candidates.push(u);
+          });
+      }
+    } catch (err) {
+      // fall through
+    }
+  }
+
   return candidates;
 }
 
@@ -458,6 +540,13 @@ async function getRealProductImage(name, category) {
   }
 
   try {
+    const picked = pickUnusedCandidate(await searchUnsplashCandidates(name, category));
+    if (picked) return picked;
+  } catch (err) {
+    // fall through
+  }
+
+  try {
     const picked = pickUnusedCandidate(await searchCategoryFallbackCandidates(category, name));
     if (picked) return picked;
   } catch (err) {
@@ -481,6 +570,7 @@ module.exports = {
   getRealProductImage,
   searchPexelsCandidates,
   searchPixabayCandidates,
+  searchUnsplashCandidates,
   searchGoogleBooksCandidates,
   searchCategoryFallbackCandidates,
   searchCategoryBroadCandidates,
