@@ -346,6 +346,77 @@ async function searchCategoryFallbackCandidates(category, name) {
   return candidates;
 }
 
+// TRUE last resort before the SVG placeholder card. Every step above
+// requires a candidate photo to also match one of the product's own
+// significant words — that's correct for accuracy, but it means a product
+// with an unusual/regional name (e.g. "Masala Spice Box") can legitimately
+// find zero matches on a free stock-photo API and fall all the way through.
+//
+// Rather than show a generic icon card in that case, this does ONE final
+// query using ONLY the category's broad search term (no product-name
+// keyword requirement at all) — e.g. "grocery food product" for a grocery
+// item. This is intentionally the least strict step and is only reached
+// after every stricter, name-matched step above has already failed, so it
+// trades a little specificity for guaranteeing a real, on-topic photo
+// instead of an icon.
+async function searchCategoryBroadCandidates(category) {
+  const term = CATEGORY_SEARCH_TERMS[category];
+  if (!term) return [];
+  const candidates = [];
+
+  if (process.env.PEXELS_API_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const resp = await fetch(
+        `https://api.pexels.com/v1/search?query=${encodeURIComponent(term)}&per_page=40`,
+        { headers: { Authorization: process.env.PEXELS_API_KEY }, signal: controller.signal }
+      );
+      clearTimeout(timeout);
+      if (resp.ok) {
+        const data = await resp.json();
+        const results = Array.isArray(data.photos) ? data.photos : [];
+        results
+          .filter((item) => !looksLikeLifestylePhoto((item.alt || ""), category))
+          .forEach((item) => {
+            const u = item.src && (item.src.large || item.src.medium);
+            if (u) candidates.push(u);
+          });
+      }
+    } catch (err) {
+      // fall through
+    }
+  }
+
+  if (process.env.PIXABAY_API_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const resp = await fetch(
+        `https://pixabay.com/api/?key=${process.env.PIXABAY_API_KEY}&q=${encodeURIComponent(
+          term
+        )}&image_type=photo&safesearch=true&per_page=40&order=popular`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeout);
+      if (resp.ok) {
+        const data = await resp.json();
+        const results = Array.isArray(data.hits) ? data.hits : [];
+        results
+          .filter((item) => !looksLikeLifestylePhoto((item.tags || ""), category))
+          .forEach((item) => {
+            const u = item.webformatURL || item.largeImageURL;
+            if (u) candidates.push(u);
+          });
+      }
+    } catch (err) {
+      // fall through
+    }
+  }
+
+  return candidates;
+}
+
 /**
  * Returns a real photo URL that matches the given product name, is not
  * a duplicate of a photo already used for another product in this same
@@ -393,6 +464,16 @@ async function getRealProductImage(name, category) {
     // fall through
   }
 
+  // Every name-matched attempt failed — before giving up and showing the
+  // icon card, try one broad, category-only search so the product still
+  // gets a real, on-topic photo (see searchCategoryBroadCandidates above).
+  try {
+    const picked = pickUnusedCandidate(await searchCategoryBroadCandidates(category));
+    if (picked) return picked;
+  } catch (err) {
+    // fall through
+  }
+
   return generatePlaceholderImage(name, category);
 }
 
@@ -402,6 +483,7 @@ module.exports = {
   searchPixabayCandidates,
   searchGoogleBooksCandidates,
   searchCategoryFallbackCandidates,
+  searchCategoryBroadCandidates,
   significantWords,
   looksLikeLifestylePhoto,
   resetUsedImages,
