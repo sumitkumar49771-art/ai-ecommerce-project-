@@ -38,13 +38,10 @@ async function handleLogin(event) {
   event.preventDefault();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  // Silently included if this browser has the owner's device key saved
-  // (set once, manually, via the browser console — never a visible field).
-  const deviceKey = localStorage.getItem("adminDeviceKey") || "";
   const alertBox = document.getElementById("alert-box");
 
   try {
-    const data = await apiRequest("/auth/login", "POST", { email, password, deviceKey });
+    const data = await apiRequest("/auth/login", "POST", { email, password });
     localStorage.setItem("token", data.token);
     localStorage.setItem("userName", data.name);
     localStorage.setItem("userRole", data.role);

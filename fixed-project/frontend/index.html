@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShopAI — AI Powered E-Commerce</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <section class="hero-banner" id="hero-banner">
+    <div class="hero-banner-blob hero-banner-blob-a"></div>
+    <div class="hero-banner-blob hero-banner-blob-b"></div>
+    <div class="hero-banner-content">
+      <div class="hero-banner-eyebrow" id="hero-banner-eyebrow"><span class="pulse-dot"></span> AI-POWERED SHOPPING ENGINE</div>
+      <h1 id="hero-banner-heading">AI-Powered Shopping<br /><span class="accent">Just For You</span></h1>
+      <p id="hero-banner-sub">Discover products tailored to your taste with real-time recommendations and natural-language search.</p>
+
+      <div class="hero-banner-cta">
+        <a href="products.html" class="btn">Shop Now</a>
+        <a href="products.html" class="btn btn-outline-light">Learn More</a>
+      </div>
+
+      <div class="hero-banner-dots" id="hero-banner-dots"></div>
+    </div>
+
+    <div class="hero-banner-visual">
+      <div class="hero-visual-tile" id="hero-visual-tile">🎧</div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="features-strip">
+      <div class="feature-item" style="cursor:pointer;" onclick="showFreeDeliveryInfo()"><div class="feature-icon">🚚</div><div><strong>Free Delivery</strong><span id="home-free-delivery-text">On orders above ₹499</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="showReturnsInfo()"><div class="feature-icon">↩️</div><div><strong>Easy Returns</strong><span id="home-returns-text">Within 7 days</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="showToast('All payments are encrypted and 100% secure. Cards, UPI and wallets supported.', 'info', 4000)"><div class="feature-icon">🔒</div><div><strong>Secure Payments</strong><span>100% Protected</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="toggleChat()"><div class="feature-icon">🎧</div><div><strong>AI Support</strong><span>24/7 Assistance</span></div></div>
+      <div class="feature-item" style="cursor:pointer;" onclick="location.href='products.html'"><div class="feature-icon">🏷️</div><div><strong>Best Prices</strong><span>Guaranteed</span></div></div>
+    </div>
+
+    <div id="home-sale-section" style="display:none;">
+      <div class="promo-banner" style="background:linear-gradient(135deg,#f59e0b,#ef4444);align-items:center;">
+        <div class="promo-banner-left">
+          <span class="promo-icon">🔥</span>
+          <div>
+            <h3 style="color:#fff;">Big Summer Sale is Live! Up to 50% OFF</h3>
+            <p id="home-sale-countdown" style="color:#fff;font-weight:600;"></p>
+          </div>
+        </div>
+        <a href="products.html?deal=true" class="btn" style="background:#fff;color:#ef4444;">Shop the Sale</a>
+      </div>
+      <div id="sale-filter-bar"></div>
+      <div class="product-grid" id="sale-grid"></div>
+    </div>
+
+    <div class="section-title">
+      <h2>Top Categories</h2>
+      <a href="products.html" class="btn btn-outline">View All</a>
+    </div>
+
+    <div class="category-chips" id="category-chips"></div>
+
+    <div id="smart-search-section" style="display:none;">
+      <div class="section-title">
+        <h2>🔍 Search Results</h2>
+      </div>
+      <div id="smart-search-interpreted"></div>
+      <div id="smart-search-results" class="product-grid"></div>
+    </div>
+
+    <div id="recently-viewed-section" style="display:none;">
+      <div class="section-title">
+        <h2>🕒 Recently Viewed</h2>
+      </div>
+      <div class="scroll-row" id="recently-viewed-row"></div>
+    </div>
+
+    <div class="section-title">
+      <h2>🤖 Today's Best Deals <span class="ai-deal-subtitle">Priced below category average, rated at or above it</span></h2>
+      <a href="products.html" class="btn btn-outline">View All Deals</a>
+    </div>
+    <div id="deals-filter-bar"></div>
+    <div class="product-grid" id="deals-grid"><p>Analyzing prices...</p></div>
+
+    <div class="promo-banner">
+      <div class="promo-banner-left">
+        <span class="promo-icon">🎁</span>
+        <div>
+          <h3>Get Extra 10% OFF on Your First Order</h3>
+          <p>Use Code: <span class="promo-code">SHOPAI10</span></p>
+        </div>
+      </div>
+      <a href="products.html" class="btn">Shop Now</a>
+    </div>
+
+    <div class="section-title">
+      <h2>Featured Products</h2>
+      <a href="products.html" class="btn btn-outline">View All</a>
+    </div>
+    <div id="featured-filter-bar"></div>
+    <div class="product-grid" id="featured-grid"><p>Loading products...</p></div>
+
+    <div id="recommended-section">
+      <div class="section-title">
+        <h2>🤖 Recommended For You (AI)</h2>
+      </div>
+      <div class="product-grid" id="recommended-grid"></div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
+  <script>
+    initHero();
+    loadHomePage().then(() => {
+      if (window.location.hash) {
+        const target = document.querySelector(window.location.hash);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  </script>
+</body>
+</html>
