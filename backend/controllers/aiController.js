@@ -296,9 +296,31 @@ exports.chatbot = async (req, res) => {
 
     // Try the real LLM first (if either OpenAI or Groq is configured).
     if (process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY) {
-      const catalogSample = contextProduct
-        ? []
-        : await Product.find().sort({ views: -1 }).limit(6).select("name price").lean();
+      let catalogSample = [];
+      if (!contextProduct) {
+        // Start with the top viewed products...
+        const topViewed = await Product.find().sort({ views: -1 }).limit(6).select("name price").lean();
+
+        // ...but also pull in anything matching keywords from the message
+        // itself (e.g. "shoes", "hair oil"), so the AI doesn't wrongly think
+        // a category is missing from the catalog just because it's not
+        // among the top 6 most-viewed items.
+        const words = lower
+          .replace(/[^a-z0-9\s]/gi, " ")
+          .split(/\s+/)
+          .filter((w) => w.length > 2 && !FILLER_KEYWORDS.has(w));
+        const keywordMatches = words.length > 0 ? await findBestMatches(words, 6) : [];
+
+        const seen = new Set();
+        catalogSample = [...keywordMatches, ...topViewed]
+          .filter((p) => {
+            const id = p._id.toString();
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+          })
+          .slice(0, 10);
+      }
       const llmReply = await callLLM(message, contextProduct, catalogSample);
       if (llmReply) {
         res.json({ reply: llmReply, source: "llm" });
