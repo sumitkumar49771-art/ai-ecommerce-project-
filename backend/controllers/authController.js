@@ -53,17 +53,21 @@ exports.registerUser = async (req, res) => {
 // @route  POST /api/auth/login
 exports.loginUser = async (req, res) => {
   try {
-    const { email, password, adminPin } = req.body;
+    const { email, password, deviceKey } = req.body;
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
       // Extra layer: even with the correct email + password, an admin
-      // account cannot log in without this secret PIN (set in .env, never
-      // committed, known only to the site owner). Regular "user" accounts
-      // are unaffected — this check only fires for role === "admin".
+      // account cannot log in unless this request came from a browser that
+      // already has the secret device key stored in localStorage. Nobody
+      // types this — it's set once (by the owner only) via the browser
+      // console and stays in that one browser. Any other laptop/phone/
+      // browser has no way to produce it, so admin login fails there no
+      // matter what credentials are entered. Regular "user" accounts are
+      // unaffected — this check only fires for role === "admin".
       if (user.role === "admin") {
-        const requiredPin = process.env.ADMIN_ACCESS_PIN;
-        if (!requiredPin || adminPin !== requiredPin) {
+        const requiredKey = process.env.ADMIN_DEVICE_KEY;
+        if (!requiredKey || deviceKey !== requiredKey) {
           return res.status(401).json({ message: "Invalid email or password" });
         }
       }
