@@ -53,10 +53,21 @@ exports.registerUser = async (req, res) => {
 // @route  POST /api/auth/login
 exports.loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, adminPin } = req.body;
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+      // Extra layer: even with the correct email + password, an admin
+      // account cannot log in without this secret PIN (set in .env, never
+      // committed, known only to the site owner). Regular "user" accounts
+      // are unaffected — this check only fires for role === "admin".
+      if (user.role === "admin") {
+        const requiredPin = process.env.ADMIN_ACCESS_PIN;
+        if (!requiredPin || adminPin !== requiredPin) {
+          return res.status(401).json({ message: "Invalid email or password" });
+        }
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
