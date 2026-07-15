@@ -17,8 +17,6 @@ services:
         generateValue: true
       - key: JWT_EXPIRE
         value: 7d
-      - key: ADMIN_ACCESS_PIN
-        sync: false
       - key: RAZORPAY_KEY_ID
         sync: false
       - key: RAZORPAY_KEY_SECRET

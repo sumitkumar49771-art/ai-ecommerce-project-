@@ -709,11 +709,4 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMobileNav();
   renderChatWidget();
   document.getElementById("ai-chat-button")?.addEventListener("click", toggleChat);
-
-  // Someone was bounced off the admin panel for being on mobile/small screen.
-  if (new URLSearchParams(window.location.search).get("admin_desktop_only") && typeof showToast === "function") {
-    showToast("Admin panel is only available on desktop.", "info", 4000);
-    // Clean the query param out of the URL without adding a history entry.
-    window.history.replaceState({}, "", window.location.pathname);
-  }
 });

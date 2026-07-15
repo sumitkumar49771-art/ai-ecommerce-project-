@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact Us — ShopAI</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <div class="static-hero">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Contact Us</div>
+    <h1>Contact Us</h1>
+    <p>Have a question, feedback, or need help with an order? We're here for you.</p>
+  </div>
+
+  <div class="static-body">
+    <div class="static-two-col">
+      <div>
+        <h2>Get in Touch</h2>
+        <ul class="contact-info-list">
+          <li><span class="icon">📍</span><span id="contact-info-address">Golden Avenue,<br/>Amritsar, Punjab, India - 143001</span></li>
+          <li><span class="icon">📞</span><span id="contact-info-phone">+91 62806 43874</span></li>
+          <li><span class="icon">✉️</span><span id="contact-info-email">support@shopai.com</span></li>
+          <li><span class="icon">🕒</span><span id="contact-info-hours">Mon - Sat, 9:00 AM - 7:00 PM IST</span></li>
+        </ul>
+
+        <h2 style="margin-top:24px;">Prefer Instant Answers?</h2>
+        <p>Use our AI Shopping Assistant for instant help with orders, products, and more.</p>
+        <button class="btn" onclick="toggleChat()">💬 Chat with AI Assistant</button>
+      </div>
+
+      <div>
+        <h2>Send Us a Message</h2>
+        <div id="contact-alert-box"></div>
+        <form onsubmit="handleContactForm(event)">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="contact-name" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="contact-email" required />
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="contact-subject" required />
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="contact-message" rows="5" required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); font-family:inherit; resize:vertical;"></textarea>
+          </div>
+          <button class="btn" style="width:100%" type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Pull support contact details from Settings (admin-editable) so this page
+    // always matches what's set in Admin → Settings, instead of being hardcoded.
+    // Falls back silently to the HTML defaults above if the API is unreachable.
+    async function loadContactInfo() {
+      try {
+        const settings = await apiRequest("/settings");
+        if (settings.supportAddress) {
+          document.getElementById("contact-info-address").innerHTML = settings.supportAddress.replace(/\n/g, "<br/>");
+        }
+        if (settings.supportPhone) {
+          document.getElementById("contact-info-phone").textContent = settings.supportPhone;
+        }
+        if (settings.supportEmail) {
+          document.getElementById("contact-info-email").textContent = settings.supportEmail;
+        }
+        if (settings.supportHours) {
+          document.getElementById("contact-info-hours").textContent = settings.supportHours;
+        }
+      } catch (error) {
+        // Keep the hardcoded defaults already in the HTML — no need to alarm the user.
+      }
+    }
+    loadContactInfo();
+
+    async function handleContactForm(e) {
+      e.preventDefault();
+      const name = document.getElementById("contact-name").value.trim();
+      const email = document.getElementById("contact-email").value.trim();
+      const subject = document.getElementById("contact-subject").value.trim();
+      const message = document.getElementById("contact-message").value.trim();
+
+      const submitBtn = e.target.querySelector("button[type=submit]");
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending...";
+
+      try {
+        await apiRequest("/contact", "POST", { name, email, subject, message });
+        document.getElementById("contact-name").value = "";
+        document.getElementById("contact-email").value = "";
+        document.getElementById("contact-subject").value = "";
+        document.getElementById("contact-message").value = "";
+        showToast(`Thanks ${name || "there"}! Your message has been received. We'll get back to you soon.`, "success");
+      } catch (error) {
+        showToast(error.message || "Something went wrong. Please try again.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    }
+  </script>
+</body>
+</html>

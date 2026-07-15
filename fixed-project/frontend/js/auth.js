@@ -38,11 +38,10 @@ async function handleLogin(event) {
   event.preventDefault();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const adminPin = document.getElementById("adminPin")?.value || "";
   const alertBox = document.getElementById("alert-box");
 
   try {
-    const data = await apiRequest("/auth/login", "POST", { email, password, adminPin });
+    const data = await apiRequest("/auth/login", "POST", { email, password });
     localStorage.setItem("token", data.token);
     localStorage.setItem("userName", data.name);
     localStorage.setItem("userRole", data.role);

@@ -4,17 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ShopAI Admin — Dashboard</title>
-<script>
-  // Admin panel is desktop-only. Bounce mobile/small-screen visitors straight
-  // to the home page before any admin markup, data, or scripts load.
-  (function () {
-    var isMobileUA = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
-    var isSmallScreen = window.innerWidth < 900;
-    if (isMobileUA || isSmallScreen) {
-      window.location.replace("index.html?admin_desktop_only=1");
-    }
-  })();
-</script>
 <link rel="stylesheet" href="css/style.css" />
 <script src="js/vendor/chart.umd.js"></script>
 </head>
