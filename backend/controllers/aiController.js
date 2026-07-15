@@ -213,9 +213,9 @@ exports.getProductDealScore = async (req, res) => {
   }
 };
 // Calls a chat-completion LLM API for a natural-language shopping assistant.
-// Prefers OpenAI if configured; otherwise falls back to Groq (also
-// OpenAI-format, but free-tier — no credit card needed). Returns null on
-// any failure so the caller can fall back further to the rule-based bot.
+// Prefers Groq if configured (free-tier, no quota issues); otherwise falls
+// back to OpenAI. Returns null on any failure so the caller can fall back
+// further to the rule-based bot.
 async function callLLM(message, contextProduct, catalogSample) {
   const openaiKey = process.env.OPENAI_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
@@ -223,6 +223,8 @@ async function callLLM(message, contextProduct, catalogSample) {
 
   // Groq's API is OpenAI-format-compatible, so the same request body works
   // for both — only the base URL, auth key, and model name change.
+  // Groq is preferred (free-tier, no quota issues); OpenAI is only used as
+  // a fallback if no Groq key is configured.
   const provider = groqKey
     ? { url: "https://api.groq.com/openai/v1/chat/completions", key: groqKey, model: "llama-3.1-8b-instant", name: "Groq" }
     : { url: "https://api.openai.com/v1/chat/completions", key: openaiKey, model: "gpt-4o-mini", name: "OpenAI" };
