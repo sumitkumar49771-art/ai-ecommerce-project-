@@ -2,9 +2,9 @@ require("dotenv").config();
 
 // Quick visibility into which chatbot provider will be used, printed once
 // at startup — helps confirm a key was actually picked up from .env.
-if (process.env.OPENAI_API_KEY) {
+if (process.env.GROQ_API_KEY) {
   console.log("🤖 Chatbot: OpenAI key detected — will use OpenAI (gpt-4o-mini).");
-} else if (process.env.GROQ_API_KEY) {
+} else if (process.env.OPENAI_API_KEY) {
   console.log(
     `🤖 Chatbot: Groq key detected (starts with "${process.env.GROQ_API_KEY.slice(0, 8)}...") — will use Groq (llama-3.1-8b-instant).`
   );
