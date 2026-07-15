@@ -223,9 +223,9 @@ async function callLLM(message, contextProduct, catalogSample) {
 
   // Groq's API is OpenAI-format-compatible, so the same request body works
   // for both — only the base URL, auth key, and model name change.
-  const provider = openaiKey
-    ? { url: "https://api.openai.com/v1/chat/completions", key: openaiKey, model: "gpt-4o-mini", name: "OpenAI" }
-    : { url: "https://api.groq.com/openai/v1/chat/completions", key: groqKey, model: "llama-3.1-8b-instant", name: "Groq" };
+  const provider = groqKey
+    ? { url: "https://api.groq.com/openai/v1/chat/completions", key: groqKey, model: "llama-3.1-8b-instant", name: "Groq" }
+    : { url: "https://api.openai.com/v1/chat/completions", key: openaiKey, model: "gpt-4o-mini", name: "OpenAI" };
 
   const systemPrompt = `You are ShopAI's friendly shopping assistant for an e-commerce store.
 Keep replies short (1-3 sentences), helpful, and focused on shopping — products, orders, returns, pricing.
