@@ -828,6 +828,11 @@ option { background: var(--card-bg); color: var(--text); }
   font-size: 12.5px; display: flex; justify-content: space-between; max-width: 1240px; margin: 0 auto; flex-wrap: wrap; gap: 8px;
 }
 
+/* Hide footer only on mobile screens; desktop/laptop stays unaffected */
+@media (max-width: 768px) {
+  .site-footer { display: none; }
+}
+
 footer { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
 
 /* ============ STATIC INFO PAGES (About, Careers, Blog, Terms, Privacy, Help, Returns, Shipping, Contact) ============ */
