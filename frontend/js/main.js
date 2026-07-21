@@ -191,6 +191,7 @@ function renderMobileNav() {
   const items = [
     { href: "index.html", icon: "🏠", label: "Home" },
     { href: "products.html", icon: "🔍", label: "Search" },
+    ...(loggedIn ? [{ href: "sell.html", icon: "🏷", label: "Sell" }] : []),
     { href: "cart.html", icon: "🛒", label: "Cart", badgeId: "mobile-cart-count" },
     loggedIn
       ? { href: "wishlist.html", icon: "♡", label: "Wishlist" }
