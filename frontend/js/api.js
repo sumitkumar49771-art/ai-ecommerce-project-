@@ -2,9 +2,10 @@
 const API_BASE =
   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000/api"
-    // 👇 After deploying the backend on Render, replace this with your
-    // real backend URL, e.g. "https://shopai-backend.onrender.com/api"
-    : "https://YOUR-BACKEND-NAME.onrender.com/api";
+    // Production: the Express backend serves the frontend as static files
+    // from the SAME Render service/domain, so /api on the current origin
+    // always resolves correctly — no separate frontend deploy needed.
+    : `${window.location.origin}/api`;
 
 function getToken() {
   return localStorage.getItem("token");
