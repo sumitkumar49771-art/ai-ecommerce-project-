@@ -55,7 +55,8 @@
 </head>
 <body>
   <div class="admin-shell" id="seller-shell">
-    <aside class="admin-side">
+    <div class="admin-backdrop" id="seller-backdrop" onclick="closeMobileSidebar()"></div>
+    <aside class="admin-side" id="seller-sidebar">
       <div class="admin-side-brand"><span class="fk-mark">S</span> Seller Hub</div>
 
       <div class="admin-link active" data-panel="dashboard"><span class="admin-link-icon">📊</span> Dashboard</div>
@@ -72,7 +73,7 @@
 
     <div class="admin-main-wrap">
       <div class="admin-topbar">
-        <div class="admin-topbar-title" id="seller-topbar-title">☰ Dashboard</div>
+        <div class="admin-topbar-title" id="seller-topbar-title" onclick="toggleMobileSidebar()">☰ Dashboard</div>
         <div class="admin-topbar-right">
           <span class="seller-status-pill">Seller Account Active</span>
           <span id="seller-username-label">Seller</span>

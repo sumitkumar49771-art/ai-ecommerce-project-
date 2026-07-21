@@ -39,6 +39,7 @@ function setupSidebar() {
     link.addEventListener("click", () => {
       document.querySelectorAll(".admin-link").forEach((l) => l.classList.remove("active"));
       link.classList.add("active");
+      closeMobileSidebar(); // tapping a link on mobile should close the drawer
 
       const panelKey = link.dataset.panel;
       showPanel(panelKey);
@@ -168,6 +169,18 @@ function setupSidebar() {
 function showPanel(key) {
   document.querySelectorAll(".admin-panel").forEach((p) => p.classList.remove("active"));
   document.getElementById(`panel-${key}`)?.classList.add("active");
+}
+
+/* ---------------- MOBILE SIDEBAR DRAWER ---------------- */
+
+function toggleMobileSidebar() {
+  document.querySelector(".admin-side")?.classList.toggle("open");
+  document.querySelector(".admin-backdrop")?.classList.toggle("open");
+}
+
+function closeMobileSidebar() {
+  document.querySelector(".admin-side")?.classList.remove("open");
+  document.querySelector(".admin-backdrop")?.classList.remove("open");
 }
 
 /* ---------------- STAT CARDS ---------------- */

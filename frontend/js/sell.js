@@ -28,11 +28,24 @@ function setTopbarUser() {
 
 /* ---------------- SIDEBAR NAVIGATION ---------------- */
 
+/* ---------------- MOBILE SIDEBAR DRAWER ---------------- */
+
+function toggleMobileSidebar() {
+  document.querySelector(".admin-side")?.classList.toggle("open");
+  document.querySelector(".admin-backdrop")?.classList.toggle("open");
+}
+
+function closeMobileSidebar() {
+  document.querySelector(".admin-side")?.classList.remove("open");
+  document.querySelector(".admin-backdrop")?.classList.remove("open");
+}
+
 function setupSidebar() {
   document.querySelectorAll(".admin-link[data-panel]").forEach((link) => {
     link.addEventListener("click", () => {
       document.querySelectorAll(".admin-link[data-panel]").forEach((l) => l.classList.remove("active"));
       link.classList.add("active");
+      closeMobileSidebar(); // tapping a link on mobile should close the drawer
       showPanel(link.dataset.panel);
     });
   });

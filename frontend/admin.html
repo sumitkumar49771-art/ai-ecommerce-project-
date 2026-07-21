@@ -20,7 +20,8 @@
 </head>
 <body>
   <div class="admin-shell">
-    <aside class="admin-side">
+    <div class="admin-backdrop" id="admin-backdrop" onclick="closeMobileSidebar()"></div>
+    <aside class="admin-side" id="admin-sidebar">
       <div class="admin-side-brand">Shop<span>AI</span> Admin</div>
 
       <div class="admin-link active" data-panel="dashboard"><span class="admin-link-icon">📊</span> Dashboard</div>
@@ -65,7 +66,7 @@
 
     <div class="admin-main-wrap">
       <div class="admin-topbar">
-        <div class="admin-topbar-title" id="admin-topbar-title">☰ Dashboard Overview</div>
+        <div class="admin-topbar-title" id="admin-topbar-title" onclick="toggleMobileSidebar()">☰ Dashboard Overview</div>
         <div class="admin-topbar-right">
           <span id="admin-username-label">Admin</span>
           <div class="admin-avatar" id="admin-avatar-initial">A</div>

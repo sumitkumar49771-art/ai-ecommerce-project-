@@ -637,7 +637,20 @@ option { background: var(--card-bg); color: var(--text); }
 .coming-soon h3 { color: var(--text); margin-bottom: 6px; }
 
 @media (max-width: 900px) {
-  .admin-side { display: none; }
+  .admin-side {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  }
+  .admin-side.open { transform: translateX(0); }
+  .admin-backdrop {
+    display: none;
+    position: fixed; inset: 0; z-index: 290;
+    background: rgba(0,0,0,0.45);
+  }
+  .admin-backdrop.open { display: block; }
+  .admin-topbar-title { cursor: pointer; user-select: none; }
 }
 
 /* CHECKOUT */
