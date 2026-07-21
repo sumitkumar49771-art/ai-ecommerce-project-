@@ -72,7 +72,8 @@ async function renderNavbar() {
       <a href="cart.html">🛒 Cart <span class="badge" id="cart-count" style="display:none;">0</span></a>
       ${
         loggedIn
-          ? `<a href="orders.html">👤 My Orders</a>
+          ? `<a href="sell.html">🏷 Sell</a>
+             <a href="orders.html">👤 My Orders</a>
              ${isAdmin() ? `<a href="admin.html" class="badge">⚙ Admin</a>` : ""}
              <a href="#" onclick="logout()" class="btn btn-outline">Logout</a>`
           : `<a href="login.html" class="btn btn-outline">Login</a>

@@ -13,6 +13,12 @@ const settingsSchema = new mongoose.Schema(
     saleEnabled: { type: Boolean, default: false },
     saleDurationDays: { type: Number, default: 3 },
     saleEndsAt: { type: Date, default: null },
+
+    // Platform commission taken from every unit sold by a marketplace
+    // seller (a user who listed their own product via the Seller Hub).
+    // Products added by the admin through the catalog have no seller, so
+    // no commission applies to them — the platform keeps 100% of those.
+    sellerCommissionRate: { type: Number, default: 10 }, // percent, e.g. 10 = 10%
     payment: {
       codEnabled: { type: Boolean, default: true },
       upiEnabled: { type: Boolean, default: true },

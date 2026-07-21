@@ -8,6 +8,7 @@ const {
   getAllOrders,
   updateOrderStatus,
   getAnalytics,
+  getSellerEarnings,
   requestReturn,
   decideReturn,
 } = require("../controllers/orderController");
@@ -16,6 +17,7 @@ const { protect, admin } = require("../middleware/authMiddleware");
 router.post("/", protect, placeOrder);
 router.get("/my", protect, getMyOrders);
 router.get("/analytics", protect, admin, getAnalytics);
+router.get("/seller/earnings", protect, getSellerEarnings); // must come before /:id
 router.get("/", protect, admin, getAllOrders);
 router.get("/:id", protect, getOrderById);
 router.put("/:id/cancel", protect, cancelOrder);

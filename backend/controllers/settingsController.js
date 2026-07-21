@@ -30,7 +30,7 @@ exports.updateSettings = async (req, res) => {
     const settings = await getOrCreateSettings();
     const allowed = [
       "storeName", "supportEmail", "supportPhone", "supportAddress", "supportHours", "currency", "freeDeliveryAbove", "returnPolicyDays",
-      "payment", "shippingZones", "saleEnabled", "saleDurationDays",
+      "payment", "shippingZones", "saleEnabled", "saleDurationDays", "sellerCommissionRate",
     ];
     allowed.forEach((key) => {
       if (req.body[key] !== undefined) settings[key] = req.body[key];

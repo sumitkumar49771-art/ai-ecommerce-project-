@@ -179,7 +179,7 @@
           <div class="admin-card">
             <table class="data-table">
               <thead>
-                <tr><th>Image</th><th>Icon</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr>
+                <tr><th>Image</th><th>Icon</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Added By</th><th>Actions</th></tr>
               </thead>
               <tbody id="products-table-body"></tbody>
             </table>
@@ -375,6 +375,9 @@
               <div class="form-group"><label>Support Hours</label><input id="set-support-hours" /></div>
               <div class="form-group"><label>Free Delivery Above (₹)</label><input id="set-free-delivery" type="number" /></div>
               <div class="form-group"><label>Return Window (days)</label><input id="set-return-days" type="number" placeholder="e.g. 7" /></div>
+              <div class="form-group"><label>Seller Commission (%)</label><input id="set-commission-rate" type="number" min="0" max="100" placeholder="e.g. 10" />
+                <small style="color:var(--muted); font-size:12px;">Cut taken from every item sold by marketplace sellers (Seller Hub listings).</small>
+              </div>
             </div>
             <div class="admin-form-row">
               <div class="form-group">

@@ -2,6 +2,7 @@ const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const Coupon = require("../models/Coupon");
+const Settings = require("../models/Settings");
 const { getShippingQuote } = require("../utils/shippingCalculator");
 const { validateCoupon } = require("../utils/couponValidator");
 const { verifyRazorpaySignature } = require("./paymentController");
@@ -52,13 +53,25 @@ exports.placeOrder = async (req, res) => {
       }
     }
 
-    const items = cart.items.map((i) => ({
-      product: i.product._id,
-      name: i.product.name,
-      price: i.product.price,
-      quantity: i.quantity,
-      image: i.product.image,
-    }));
+    const settings = await Settings.findOne().lean();
+    const commissionRate = settings?.sellerCommissionRate ?? 10;
+
+    const items = cart.items.map((i) => {
+      const lineTotal = i.product.price * i.quantity;
+      const hasSeller = !!i.product.seller;
+      const commissionAmount = hasSeller ? Math.round(lineTotal * (commissionRate / 100) * 100) / 100 : 0;
+      return {
+        product: i.product._id,
+        name: i.product.name,
+        price: i.product.price,
+        quantity: i.quantity,
+        image: i.product.image,
+        seller: i.product.seller || null,
+        commissionRate: hasSeller ? commissionRate : 0,
+        commissionAmount,
+        sellerEarning: hasSeller ? Math.round((lineTotal - commissionAmount) * 100) / 100 : 0,
+      };
+    });
 
     const itemsSubtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
@@ -439,7 +452,7 @@ exports.updateOrderStatus = async (req, res) => {
 // @route GET /api/orders/analytics (admin) — powers the Admin Dashboard charts
 exports.getAnalytics = async (req, res) => {
   try {
-    const [statusBreakdown, revenueByDay, topCategories, topSellingProducts, totals] = await Promise.all([
+    const [statusBreakdown, revenueByDay, topCategories, topSellingProducts, totals, commissionTotals] = await Promise.all([
       Order.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       Order.aggregate([
         { $match: { createdAt: { $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) } } },
@@ -491,6 +504,21 @@ exports.getAnalytics = async (req, res) => {
         { $match: { status: { $ne: "cancelled" } } },
         { $group: { _id: null, totalRevenue: { $sum: "$totalAmount" }, totalOrders: { $sum: 1 } } },
       ]),
+      // Platform commission earned from marketplace sellers' items (items with a
+      // seller set). This is the "cut" the platform keeps on every third-party sale.
+      Order.aggregate([
+        { $match: { status: { $ne: "cancelled" } } },
+        { $unwind: "$items" },
+        { $match: { "items.seller": { $ne: null } } },
+        {
+          $group: {
+            _id: null,
+            totalCommission: { $sum: "$items.commissionAmount" },
+            totalSellerSalesValue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+            unitsSoldBySellers: { $sum: "$items.quantity" },
+          },
+        },
+      ]),
     ]);
 
     res.json({
@@ -500,6 +528,69 @@ exports.getAnalytics = async (req, res) => {
       topSellingProducts,
       totalRevenue: totals[0]?.totalRevenue || 0,
       totalOrders: totals[0]?.totalOrders || 0,
+      platformCommission: {
+        totalCommission: commissionTotals[0]?.totalCommission || 0,
+        totalSellerSalesValue: commissionTotals[0]?.totalSellerSalesValue || 0,
+        unitsSoldBySellers: commissionTotals[0]?.unitsSoldBySellers || 0,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @route GET /api/orders/seller/earnings (any logged-in user)
+// Powers the "Earnings" panel in the Seller Hub — how much this user has
+// sold, how much the platform's commission took, and their net payout.
+exports.getSellerEarnings = async (req, res) => {
+  try {
+    const sellerId = req.user._id;
+
+    const [summary, recentSales] = await Promise.all([
+      Order.aggregate([
+        { $match: { status: { $ne: "cancelled" } } },
+        { $unwind: "$items" },
+        { $match: { "items.seller": sellerId } },
+        {
+          $group: {
+            _id: null,
+            totalSalesValue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+            totalCommission: { $sum: "$items.commissionAmount" },
+            totalEarnings: { $sum: "$items.sellerEarning" },
+            unitsSold: { $sum: "$items.quantity" },
+            ordersCount: { $addToSet: "$_id" },
+          },
+        },
+      ]),
+      Order.aggregate([
+        { $unwind: "$items" },
+        { $match: { "items.seller": sellerId } },
+        { $sort: { createdAt: -1 } },
+        { $limit: 10 },
+        {
+          $project: {
+            orderId: "$_id",
+            createdAt: 1,
+            status: 1,
+            name: "$items.name",
+            quantity: "$items.quantity",
+            price: "$items.price",
+            commissionAmount: "$items.commissionAmount",
+            sellerEarning: "$items.sellerEarning",
+          },
+        },
+      ]),
+    ]);
+
+    const s = summary[0];
+    res.json({
+      totalSalesValue: s?.totalSalesValue || 0,
+      totalCommission: s?.totalCommission || 0,
+      totalEarnings: s?.totalEarnings || 0,
+      unitsSold: s?.unitsSold || 0,
+      ordersCount: s?.ordersCount?.length || 0,
+      commissionRate: (await Settings.findOne().lean())?.sellerCommissionRate ?? 10,
+      recentSales,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

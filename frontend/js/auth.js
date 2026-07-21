@@ -48,7 +48,8 @@ async function handleLogin(event) {
     localStorage.setItem("token", data.token);
     localStorage.setItem("userName", data.name);
     localStorage.setItem("userRole", data.role);
-    window.location.href = data.role === "admin" ? "admin.html" : "index.html";
+    const redirect = new URLSearchParams(window.location.search).get("redirect");
+    window.location.href = redirect || (data.role === "admin" ? "admin.html" : "index.html");
   } catch (err) {
     alertBox.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
   }

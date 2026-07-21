@@ -10,6 +10,14 @@ const orderSchema = new mongoose.Schema(
         price: Number,
         quantity: Number,
         image: String,
+        // Marketplace tracking: null seller = admin's own catalog item
+        // (platform keeps the full amount). A set seller means this line
+        // was sold on behalf of that user, who earns the item total minus
+        // the commission below.
+        seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        commissionRate: { type: Number, default: 0 }, // % snapshotted at order time
+        commissionAmount: { type: Number, default: 0 }, // ₹ platform earns from this line
+        sellerEarning: { type: Number, default: 0 }, // ₹ seller earns from this line (price*qty - commission)
       },
     ],
     totalAmount: { type: Number, required: true },

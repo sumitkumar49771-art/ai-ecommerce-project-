@@ -832,6 +832,7 @@ async function loadProductDetail() {
           <p style="margin:12px 0; color:var(--muted);">${p.description}</p>
           <p class="product-price" style="font-size:26px;">₹${p.price}</p>
           <p style="margin:8px 0; color:var(--muted); font-size:14px;"><span class="stars">${starRating(p.rating)}</span> ${p.rating} (${p.numReviews} reviews) · ${p.stock} in stock</p>
+          <p style="margin:0 0 14px; font-size:13px; color:var(--muted);">Sold by <strong style="color:var(--text);">${p.seller ? p.seller.name : "ShopAI Retail"}</strong></p>
           <button class="btn" onclick="addToCartHandler('${p._id}', event)">Add to Cart</button>
           ${
             isLoggedIn()

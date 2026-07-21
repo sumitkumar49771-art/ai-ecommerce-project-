@@ -172,7 +172,7 @@ function showPanel(key) {
 
 /* ---------------- STAT CARDS ---------------- */
 
-function renderStats({ products = 0, orders = 0, users = 0, revenue = 0 } = {}) {
+function renderStats({ products = 0, orders = 0, users = 0, revenue = 0, commission = 0 } = {}) {
   const el = document.getElementById("stat-cards");
   if (!el) return;
   el.innerHTML = `
@@ -196,10 +196,15 @@ function renderStats({ products = 0, orders = 0, users = 0, revenue = 0 } = {}) 
       <div class="num">${products}</div>
       <div class="label">Total Products <span style="color:#94a3b8;">from last 7 days</span></div>
     </div>
+    <div class="stat-card">
+      <div class="stat-card-top"><div class="stat-icon green">💰</div></div>
+      <div class="num">₹${commission.toLocaleString("en-IN")}</div>
+      <div class="label">Platform Commission <span style="color:#94a3b8;">from seller sales</span></div>
+    </div>
   `;
 }
 
-let statCache = { products: 0, orders: 0, users: 0, revenue: 0 };
+let statCache = { products: 0, orders: 0, users: 0, revenue: 0, commission: 0 };
 function updateStat(key, value) {
   statCache[key] = value;
   renderStats(statCache);
@@ -223,6 +228,7 @@ async function loadProducts() {
         <td>${p.category}</td>
         <td>₹${p.price}</td>
         <td>${p.stock}</td>
+        <td>${p.seller ? `<span style="background:var(--primary-light); color:var(--primary-dark); font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:6px; white-space:nowrap;">👤 ${p.seller.name}</span>` : `<span style="color:var(--muted); font-size:12.5px;">Admin (Catalog)</span>`}</td>
         <td>
           <span class="action-link" onclick="editProduct('${p._id}')">Edit</span>
           <span class="action-link danger" onclick="deleteProduct('${p._id}')">Delete</span>
@@ -232,7 +238,7 @@ async function loadProducts() {
       .join("");
   } catch (err) {
     const body = document.getElementById("products-table-body");
-    if (body) body.innerHTML = `<tr><td colspan="7">Could not load products.</td></tr>`;
+    if (body) body.innerHTML = `<tr><td colspan="8">Could not load products.</td></tr>`;
   }
 }
 
@@ -495,6 +501,7 @@ async function loadAnalytics() {
     renderCategoryPie(data.topCategories);
     renderTopSellingProducts(data.topSellingProducts);
     renderAiRecommendations(data.topCategories, data.topSellingProducts);
+    updateStat("commission", data.platformCommission?.totalCommission || 0);
   } catch (err) {
     // Non-fatal — dashboard still shows stat cards and tables from other endpoints
   }
@@ -1071,6 +1078,7 @@ async function loadGeneralSettings() {
     document.getElementById("set-support-hours").value = settings.supportHours || "";
     document.getElementById("set-free-delivery").value = settings.freeDeliveryAbove || 0;
     document.getElementById("set-return-days").value = settings.returnPolicyDays || 7;
+    document.getElementById("set-commission-rate").value = settings.sellerCommissionRate ?? 10;
     document.getElementById("set-sale-duration").value = settings.saleEnabled ? String(settings.saleDurationDays || 3) : "0";
   } catch (err) {
     showToast("Could not load settings", "error");
@@ -1089,6 +1097,7 @@ async function saveGeneralSettings() {
     supportHours: document.getElementById("set-support-hours").value.trim(),
     freeDeliveryAbove: parseFloat(document.getElementById("set-free-delivery").value) || 0,
     returnPolicyDays: parseInt(document.getElementById("set-return-days").value, 10) || 7,
+    sellerCommissionRate: parseFloat(document.getElementById("set-commission-rate").value) || 0,
     // Picking any duration other than "Off" automatically turns the sale on;
     // picking "Off" turns it off. No separate toggle needed.
     saleEnabled: saleDays > 0,

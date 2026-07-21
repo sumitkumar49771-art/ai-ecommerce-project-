@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seller Hub — ShopAI</title>
+<link rel="stylesheet" href="css/style.css" />
+<style>
+  /* Flipkart Seller Hub-inspired palette, scoped to this page only via
+     #seller-shell — doesn't touch the site-wide --primary etc. used by
+     the storefront/admin panel elsewhere. */
+  #seller-shell {
+    --fk-blue: #2874f0;
+    --fk-blue-dark: #1d5fd1;
+    --fk-yellow: #ffe11b;
+    --fk-navy: #172337;
+    --fk-navy-alt: #1e2c46;
+    --fk-green: #388e3c;
+  }
+  #seller-shell.admin-shell { background: var(--bg); }
+  #seller-shell .admin-side { background: var(--fk-navy); }
+  #seller-shell .admin-side-brand { color: #fff; }
+  #seller-shell .admin-side-brand .fk-mark {
+    background: var(--fk-yellow); color: var(--fk-navy); font-weight: 900; border-radius: 4px;
+    padding: 2px 6px; font-size: 13px; letter-spacing: 0.5px;
+  }
+  #seller-shell .admin-link.active { background: var(--fk-blue); color: #fff; border-left-color: var(--fk-yellow); }
+  #seller-shell .admin-link:hover { background: rgba(255,255,255,0.06); }
+  #seller-shell .admin-topbar { border-bottom: 3px solid var(--fk-blue); }
+  #seller-shell .btn { background: var(--fk-blue); }
+  #seller-shell .btn:hover { background: var(--fk-blue-dark); box-shadow: 0 8px 16px -6px rgba(40,116,240,0.45); }
+  #seller-shell .btn-outline { border-color: var(--fk-blue); color: var(--fk-blue); }
+  #seller-shell .admin-avatar { background: var(--fk-blue); color: #fff; }
+  #seller-shell .stat-card { border-top: 3px solid var(--fk-blue); }
+  #seller-shell .stat-card:nth-child(2) { border-top-color: var(--fk-yellow); }
+  #seller-shell .stat-card:nth-child(3) { border-top-color: var(--fk-green); }
+  #seller-shell .stat-card:nth-child(4) { border-top-color: #a855f7; }
+  #seller-shell .admin-link.active .admin-link-icon { filter: none; }
+  #seller-shell .seller-status-pill {
+    display: inline-flex; align-items: center; gap: 6px; background: #e8f5e9; color: var(--fk-green);
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+  }
+  #seller-shell .seller-status-pill::before { content: "●"; font-size: 8px; }
+  #seller-shell .seller-welcome-banner {
+    background: linear-gradient(120deg, var(--fk-blue), #5b9bff); color: #fff; border-radius: var(--radius);
+    padding: 20px 24px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  #seller-shell .seller-welcome-banner h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+  #seller-shell .seller-welcome-banner p { font-size: 13px; opacity: 0.9; }
+  #seller-shell .seller-welcome-banner .btn { background: var(--fk-yellow); color: var(--fk-navy); font-weight: 800; }
+  #seller-shell .seller-welcome-banner .btn:hover { background: #ffd400; }
+  #seller-shell .back-to-store { color: #cbd5e1; font-size: 12.5px; text-decoration: none; }
+  #seller-shell .back-to-store:hover { color: #fff; }
+</style>
+</head>
+<body>
+  <div class="admin-shell" id="seller-shell">
+    <aside class="admin-side">
+      <div class="admin-side-brand"><span class="fk-mark">S</span> Seller Hub</div>
+
+      <div class="admin-link active" data-panel="dashboard"><span class="admin-link-icon">📊</span> Dashboard</div>
+      <div class="admin-group-label">Catalog</div>
+      <div class="admin-link" data-panel="add-listing"><span class="admin-link-icon">➕</span> Add Listing</div>
+      <div class="admin-link" data-panel="listings"><span class="admin-link-icon">📦</span> My Listings</div>
+      <div class="admin-group-label">Payments</div>
+      <div class="admin-link" data-panel="earnings"><span class="admin-link-icon">💰</span> Earnings</div>
+
+      <div class="admin-group-label">Account</div>
+      <a class="admin-link back-to-store" href="index.html"><span class="admin-link-icon">🏬</span> Back to Store</a>
+      <div class="admin-link admin-side-logout" onclick="logout()"><span class="admin-link-icon">🚪</span> Logout</div>
+    </aside>
+
+    <div class="admin-main-wrap">
+      <div class="admin-topbar">
+        <div class="admin-topbar-title" id="seller-topbar-title">☰ Dashboard</div>
+        <div class="admin-topbar-right">
+          <span class="seller-status-pill">Seller Account Active</span>
+          <span id="seller-username-label">Seller</span>
+          <div class="admin-avatar" id="seller-avatar-initial">S</div>
+        </div>
+      </div>
+
+      <div class="admin-content">
+
+        <!-- ============ DASHBOARD PANEL ============ -->
+        <div class="admin-panel active" id="panel-dashboard">
+          <h1 class="admin-page-title">Seller Dashboard</h1>
+          <p class="admin-page-sub">Track your listings and performance at a glance.</p>
+
+          <div class="seller-welcome-banner">
+            <div>
+              <h2 id="seller-welcome-name">Welcome back!</h2>
+              <p>Ready to reach more buyers? List a new product in under a minute.</p>
+            </div>
+            <button class="btn" onclick="goToPanel('add-listing')">➕ Add New Listing</button>
+          </div>
+
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">My Listings</span></div>
+              <div class="num" id="stat-total-products">0</div>
+              <div class="label">Live in the store</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Total Views</span></div>
+              <div class="num" id="stat-total-views">0</div>
+              <div class="label">Across all listings</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Total Stock</span></div>
+              <div class="num" id="stat-total-stock">0</div>
+              <div class="label">Units available</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Avg. Rating</span></div>
+              <div class="num" id="stat-avg-rating">–</div>
+              <div class="label">Of your products</div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="dash-card-head"><h3>Recent Listings</h3><span class="action-link" onclick="goToPanel('listings')">View all →</span></div>
+            <table class="data-table">
+              <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Views</th></tr></thead>
+              <tbody id="recent-products-table-body"><tr><td colspan="6">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============ ADD LISTING PANEL ============ -->
+        <div class="admin-panel" id="panel-add-listing">
+          <h1 class="admin-page-title" id="listing-form-page-title">Add New Listing</h1>
+          <p class="admin-page-sub">Fill in the details below to list your product on ShopAI.</p>
+
+          <div class="admin-card">
+            <input type="hidden" id="p-id" />
+            <div class="admin-form-row">
+              <div class="form-group"><label>Name</label><input id="p-name" placeholder="e.g. Handmade Leather Wallet" /></div>
+              <div class="form-group"><label>Category</label>
+                <input id="p-category" list="category-list" placeholder="e.g. Accessories" />
+                <datalist id="category-list">
+                  <option value="Footwear"></option>
+                  <option value="Electronics"></option>
+                  <option value="Clothing"></option>
+                  <option value="Accessories"></option>
+                  <option value="Home & Kitchen"></option>
+                  <option value="Beauty & Personal Care"></option>
+                  <option value="Books"></option>
+                  <option value="Sports & Fitness"></option>
+                  <option value="Toys & Games"></option>
+                  <option value="Grocery & Gourmet"></option>
+                </datalist>
+              </div>
+              <div class="form-group"><label>Price (₹)</label><input id="p-price" type="number" min="0" /></div>
+              <div class="form-group"><label>Original Price (₹) — optional</label><input id="p-original-price" type="number" min="0" placeholder="e.g. 999" /></div>
+              <div class="form-group"><label>Stock</label><input id="p-stock" type="number" min="0" placeholder="e.g. 20" /></div>
+            </div>
+            <div class="admin-form-row">
+              <div class="form-group"><label>Image URL — optional</label><input id="p-image" placeholder="https://..." />
+                <small style="color:var(--muted); font-size:12px;">Leave blank for an auto-generated product card.</small>
+              </div>
+              <div class="form-group"><label>Tags (comma separated)</label><input id="p-tags" placeholder="handmade, leather, wallet" /></div>
+              <div class="form-group"><label>Brand — optional</label><input id="p-brand" placeholder="e.g. YourBrand" /></div>
+              <div class="form-group"><label>Icon (emoji) — optional</label><input id="p-icon" placeholder="👛" /></div>
+            </div>
+            <div class="form-group"><label>Description</label><textarea id="p-description" rows="3" placeholder="Describe your product..."></textarea></div>
+            <button class="btn" onclick="saveMyProduct()" id="product-save-btn">Add Listing</button>
+            <button class="btn btn-outline" onclick="resetMyProductForm()" style="margin-left:8px; display:none;" id="product-cancel-btn">Cancel Edit</button>
+            <div id="product-alert"></div>
+          </div>
+        </div>
+
+        <!-- ============ MY LISTINGS PANEL ============ -->
+        <div class="admin-panel" id="panel-listings">
+          <h1 class="admin-page-title">My Listings</h1>
+          <p class="admin-page-sub">All the products you've listed for sale.</p>
+
+          <div class="admin-card">
+            <table class="data-table">
+              <thead>
+                <tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Views</th><th>Rating</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="my-products-table-body"><tr><td colspan="8">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============ EARNINGS PANEL ============ -->
+        <div class="admin-panel" id="panel-earnings">
+          <h1 class="admin-page-title">Earnings</h1>
+          <p class="admin-page-sub" id="earnings-commission-note">How much you've made from sales, after platform commission.</p>
+
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Total Sales Value</span></div>
+              <div class="num" id="earn-total-sales">₹0</div>
+              <div class="label">Before commission</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Platform Commission</span></div>
+              <div class="num" id="earn-total-commission">₹0</div>
+              <div class="label" id="earn-commission-rate-label">Deducted per sale</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Your Net Earnings</span></div>
+              <div class="num" id="earn-total-net" style="color:var(--fk-green,#388e3c);">₹0</div>
+              <div class="label">What you actually get paid</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top"><span class="label">Units Sold</span></div>
+              <div class="num" id="earn-units-sold">0</div>
+              <div class="label" id="earn-orders-count-label">Across 0 orders</div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h3>Recent Sales</h3>
+            <table class="data-table">
+              <thead>
+                <tr><th>Date</th><th>Product</th><th>Qty</th><th>Sale Price</th><th>Commission</th><th>You Earned</th><th>Status</th></tr>
+              </thead>
+              <tbody id="earnings-table-body"><tr><td colspan="7">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/sell.js"></script>
+</body>
+</html>

@@ -17,6 +17,11 @@ const productSchema = new mongoose.Schema(
 
     // Simple counter the AI module uses to gauge popularity
     views: { type: Number, default: 0 },
+
+    // Who added this product. Null/absent = added by an admin via the admin
+    // panel (original catalog). Set = added by a regular user via the
+    // "Sell on ShopAI" page; that user can then edit/delete it themselves.
+    seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
   },
   { timestamps: true }
 );
