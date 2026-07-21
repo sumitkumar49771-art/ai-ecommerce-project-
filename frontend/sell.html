@@ -138,19 +138,19 @@
             <div class="admin-form-row">
               <div class="form-group"><label>Name</label><input id="p-name" placeholder="e.g. Handmade Leather Wallet" /></div>
               <div class="form-group"><label>Category</label>
-                <input id="p-category" list="category-list" placeholder="e.g. Accessories" />
-                <datalist id="category-list">
-                  <option value="Footwear"></option>
-                  <option value="Electronics"></option>
-                  <option value="Clothing"></option>
-                  <option value="Accessories"></option>
-                  <option value="Home & Kitchen"></option>
-                  <option value="Beauty & Personal Care"></option>
-                  <option value="Books"></option>
-                  <option value="Sports & Fitness"></option>
-                  <option value="Toys & Games"></option>
-                  <option value="Grocery & Gourmet"></option>
-                </datalist>
+                <select id="p-category">
+                  <option value="">Select a category</option>
+                  <option value="Footwear">Footwear</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Home & Kitchen">Home & Kitchen</option>
+                  <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+                  <option value="Books">Books</option>
+                  <option value="Sports & Fitness">Sports & Fitness</option>
+                  <option value="Toys & Games">Toys & Games</option>
+                  <option value="Grocery & Gourmet">Grocery & Gourmet</option>
+                </select>
               </div>
               <div class="form-group"><label>Price (₹)</label><input id="p-price" type="number" min="0" /></div>
               <div class="form-group"><label>Original Price (₹) — optional</label><input id="p-original-price" type="number" min="0" placeholder="e.g. 999" /></div>
@@ -162,7 +162,26 @@
               </div>
               <div class="form-group"><label>Tags (comma separated)</label><input id="p-tags" placeholder="handmade, leather, wallet" /></div>
               <div class="form-group"><label>Brand — optional</label><input id="p-brand" placeholder="e.g. YourBrand" /></div>
-              <div class="form-group"><label>Icon (emoji) — optional</label><input id="p-icon" placeholder="👛" /></div>
+              <div class="form-group"><label>Icon (emoji) — optional</label>
+                <select id="p-icon">
+                  <option value="">No icon</option>
+                  <option value="👕">👕 Clothing</option>
+                  <option value="👟">👟 Footwear</option>
+                  <option value="👛">👛 Bag / Wallet</option>
+                  <option value="⌚">⌚ Watch</option>
+                  <option value="📱">📱 Electronics</option>
+                  <option value="🎧">🎧 Audio</option>
+                  <option value="💄">💄 Beauty</option>
+                  <option value="🏠">🏠 Home</option>
+                  <option value="📚">📚 Books</option>
+                  <option value="🏋">🏋 Sports</option>
+                  <option value="🧸">🧸 Toys</option>
+                  <option value="🍎">🍎 Grocery</option>
+                  <option value="🎒">🎒 School Bag</option>
+                  <option value="💍">💍 Jewelry</option>
+                  <option value="🛋">🛋 Furniture</option>
+                </select>
+              </div>
             </div>
             <div class="form-group"><label>Description</label><textarea id="p-description" rows="3" placeholder="Describe your product..."></textarea></div>
             <button class="btn" onclick="saveMyProduct()" id="product-save-btn">Add Listing</button>
