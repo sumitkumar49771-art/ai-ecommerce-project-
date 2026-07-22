@@ -6,6 +6,7 @@ const {
   getPersonalizedRecommendations,
   parseSmartQuery,
   computeDealScores,
+  getSimilarProducts,
 } = require("../utils/aiRecommendation");
 
 // Generic filler/adjective words that shouldn't be treated as product-search
@@ -157,7 +158,19 @@ exports.smartSearch = async (req, res) => {
       products = await Product.find(priceFilter).sort({ rating: -1, numReviews: -1 }).limit(8);
     }
 
-    res.json({ interpretedFilters: filters, results: products, noExactMatch });
+    // AI feature: "Related Products" row (like Flipkart/Amazon show below
+    // search results) — content-based filtering (TF-style vectors + cosine
+    // similarity) seeded from the top search result, so shoppers discover
+    // relevant items beyond the exact keyword match.
+    let relatedProducts = [];
+    if (products.length > 0) {
+      const seed = products[0];
+      const shownIds = new Set(products.map((p) => p._id.toString()));
+      const pool = await Product.find({ _id: { $nin: [...shownIds] } }).lean();
+      relatedProducts = getSimilarProducts(seed, pool, 6);
+    }
+
+    res.json({ interpretedFilters: filters, results: products, noExactMatch, relatedProducts });
 
     // Fire-and-forget log — never blocks or breaks the search response
     SearchLog.create({

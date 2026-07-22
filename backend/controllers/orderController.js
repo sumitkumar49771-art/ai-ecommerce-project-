@@ -378,7 +378,17 @@ exports.updateOrderStatus = async (req, res) => {
     const { status } = req.body;
     const wasAlreadyCancelledOrReturned = ["cancelled", "returned"].includes(order.status);
     order.status = status || order.status;
-    order.statusHistory.push({ status: order.status, note: `Updated by admin` });
+
+    const STATUS_UPDATE_NOTES = {
+      pending: "Order confirmed and awaiting processing.",
+      processing: "Your order is being packed by our team.",
+      shipped: "Order has been handed over to the courier partner.",
+      delivered: "Order has been delivered successfully.",
+    };
+    order.statusHistory.push({
+      status: order.status,
+      note: STATUS_UPDATE_NOTES[order.status] || "Order status updated by our team.",
+    });
     if (status === "delivered") order.isPaid = true;
 
     // Admin manually cancelling an order (e.g. out of stock, fraud check)
