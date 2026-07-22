@@ -104,6 +104,70 @@ function orderTrackingHTML(order) {
     </div>`;
 }
 
+// Detailed, courier-style tracking log built from the order's statusHistory
+// (real dates + notes for every status change) — a more professional view
+// than the compact step bar, shown on demand so the order list stays clean.
+const STATUS_LABELS = {
+  pending: "Order Placed",
+  processing: "Processing",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  returned: "Returned",
+};
+
+function orderTimelineDetailHTML(order) {
+  const history = order.statusHistory && order.statusHistory.length
+    ? order.statusHistory
+    : [{ status: order.status, note: "", date: order.createdAt }];
+
+  // Oldest first, so it reads top-to-bottom like a real delivery log
+  const sorted = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  return sorted
+    .map(
+      (h) => `
+      <div class="timeline-entry">
+        <div class="timeline-entry-status">${STATUS_LABELS[h.status] || h.status}</div>
+        <div class="timeline-entry-date">${new Date(h.date).toLocaleString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })}</div>
+        ${h.note ? `<div class="timeline-entry-note">${h.note}</div>` : ""}
+      </div>`
+    )
+    .join("");
+}
+
+function toggleOrderTimeline(orderId) {
+  const detail = document.getElementById(`timeline-${orderId}`);
+  const btn = document.getElementById(`timeline-btn-${orderId}`);
+  if (!detail) return;
+  const isOpen = detail.style.display === "block";
+  detail.style.display = isOpen ? "none" : "block";
+  if (btn) btn.classList.toggle("open", !isOpen);
+}
+
+// Turns the stored "N days" estimate into an actual expected date, and
+// flags it as delayed if that date has passed and the order still hasn't
+// been delivered — a small but genuinely useful real-world detail.
+function estimatedDeliveryHTML(order) {
+  if (!order.estimatedDeliveryDays || ["cancelled", "returned", "delivered"].includes(order.status)) {
+    return "";
+  }
+  const expected = new Date(order.createdAt);
+  expected.setDate(expected.getDate() + order.estimatedDeliveryDays);
+  const dateStr = expected.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const isDelayed = new Date() > expected;
+
+  return isDelayed
+    ? `<p style="margin:8px 0 0; font-size:13px; color:var(--warning, #d97706); font-weight:600;">⏳ Delivery slightly delayed — was expected by ${dateStr}</p>`
+    : `<p style="margin:8px 0 0; font-size:13px; color:var(--muted);">📦 Expected delivery by <strong style="color:var(--text);">${dateStr}</strong></p>`;
+}
+
 function returnStatusHTML(order) {
   if (!order.returnStatus || order.returnStatus === "none") return "";
   const map = {
@@ -141,6 +205,14 @@ async function loadOrders() {
           </div>
 
           ${orderTrackingHTML(o)}
+          ${estimatedDeliveryHTML(o)}
+
+          <button type="button" class="timeline-toggle-btn ${o._id === highlightId ? "open" : ""}" id="timeline-btn-${o._id}" onclick="toggleOrderTimeline('${o._id}')">
+            <span class="chevron">▾</span> View Detailed Timeline
+          </button>
+          <div class="order-timeline-detail" id="timeline-${o._id}" style="display:${o._id === highlightId ? "block" : "none"};">
+            ${orderTimelineDetailHTML(o)}
+          </div>
 
           <p style="margin-top:10px;">Items: ${o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}</p>
           <p style="font-size:13px; color:var(--muted);">Payment: ${o.paymentMethod} ${o.isPaid ? "(Paid)" : "(Pending)"}</p>

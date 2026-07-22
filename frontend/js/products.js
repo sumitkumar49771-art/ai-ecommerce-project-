@@ -801,6 +801,19 @@ async function handleSmartSearch(event) {
     resultBox.innerHTML = data.results.length
       ? data.results.map(productCard).join("")
       : "<p>No matching products found. Try a different search.</p>";
+
+    // AI feature: "Related Products" row — shown alongside search results,
+    // like Flipkart/Amazon suggest items related to what you searched for.
+    const relatedSection = document.getElementById("related-products-section");
+    const relatedRow = document.getElementById("related-products-row");
+    if (relatedSection && relatedRow) {
+      if (data.relatedProducts && data.relatedProducts.length) {
+        relatedRow.innerHTML = data.relatedProducts.map(productCard).join("");
+        relatedSection.style.display = "block";
+      } else {
+        relatedSection.style.display = "none";
+      }
+    }
   } catch (err) {
     resultBox.innerHTML = `<p>Search failed: ${err.message}</p>`;
   }
