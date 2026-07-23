@@ -268,7 +268,7 @@ body.dark-mode .hero-banner-content h1 .accent {
 body.dark-mode .hero-banner-content > p { opacity: 0.85; }
 body.dark-mode .hero-visual-tile svg { filter: brightness(1.12) saturate(1.1); }
 .hero-banner-content > p {
-  font-size: 15.5px; line-height: 1.55; opacity: 0.75; margin: 0 0 26px;
+  font-size: 15.5px; line-height: 1.55; opacity: 0.85; margin: 0 0 26px;
   max-width: 460px; transition: opacity 0.4s ease;
 }
 
