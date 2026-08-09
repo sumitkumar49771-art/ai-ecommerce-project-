@@ -64,9 +64,13 @@ app.use("/api", apiLimiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
+  // Only failed attempts count toward the limit — a person who keeps
+  // logging in successfully (e.g. testing the admin OTP flow) never gets
+  // blocked; only repeated wrong-password/OTP tries do.
+  skipSuccessfulRequests: true,
   message: { success: false, message: "Too many auth attempts, please try again later." },
 });
 app.use("/api/auth/login", authLimiter);
