@@ -7,11 +7,18 @@ function getTransporter() {
   if (transporter) return transporter;
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return null;
   transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    // Render's network has no outbound IPv6 route to Gmail, and Node's
+    // default DNS resolution can still pick an IPv6 address for
+    // smtp.gmail.com first — causing ENETUNREACH. Forcing IPv4 here fixes
+    // that without affecting local dev (which works over either).
+    family: 4,
   });
   return transporter;
 }
