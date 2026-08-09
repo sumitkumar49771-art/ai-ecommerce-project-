@@ -252,7 +252,11 @@ exports.forgotPassword = async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL || "http://127.0.0.1:5501/frontend"}/reset-password.html?token=${rawToken}`;
 
-    await sendEmail({
+    // Fire-and-forget: Render's free tier blocks outbound SMTP, so an
+    // awaited send here would hang the request forever. The generic
+    // response goes out immediately regardless of whether the email
+    // ultimately succeeds.
+    sendEmail({
       to: user.email,
       subject: "Reset your ShopAI password",
       html: `
@@ -261,7 +265,7 @@ exports.forgotPassword = async (req, res) => {
         <p><a href="${resetUrl}">${resetUrl}</a></p>
         <p>If you didn't request this, you can safely ignore this email.</p>
       `,
-    });
+    }).catch(() => {});
 
     res.json(genericMsg);
   } catch (error) {
