@@ -70,6 +70,28 @@ exports.loginUser = async (req, res) => {
         if (!requiredKey || deviceKey !== requiredKey) {
           return res.status(401).json({ message: "Invalid email or password" });
         }
+
+        // Second factor: email + password + device key are correct, but the
+        // admin session isn't issued yet. A one-time 6-digit code is emailed
+        // to the admin's own registered address; only entering that code
+        // (within 10 minutes) completes login. Only the hash is stored.
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        user.adminOtpHash = crypto.createHash("sha256").update(otp).digest("hex");
+        user.adminOtpExpire = Date.now() + 10 * 60 * 1000;
+        await user.save();
+
+        await sendEmail({
+          to: user.email,
+          subject: "Your ShopAI admin login code",
+          html: `
+            <p>Hi ${user.name},</p>
+            <p>Your one-time admin login code is:</p>
+            <h2 style="letter-spacing:4px;">${otp}</h2>
+            <p>This code expires in 10 minutes. If you didn't try to log in, you can ignore this email.</p>
+          `,
+        });
+
+        return res.json({ otpRequired: true, email: user.email });
       }
 
       res.json({
@@ -82,6 +104,50 @@ exports.loginUser = async (req, res) => {
     } else {
       res.status(401).json({ message: "Invalid email or password" });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @route  POST /api/auth/verify-admin-otp
+// Completes admin login after loginUser returned { otpRequired: true }.
+exports.verifyAdminOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and code are required" });
+    }
+
+    const user = await User.findOne({ email, role: "admin" });
+    const genericError = { message: "Invalid or expired code" };
+
+    if (!user || !user.adminOtpHash || !user.adminOtpExpire) {
+      return res.status(401).json(genericError);
+    }
+    if (user.adminOtpExpire < Date.now()) {
+      user.adminOtpHash = undefined;
+      user.adminOtpExpire = undefined;
+      await user.save();
+      return res.status(401).json(genericError);
+    }
+
+    const hashedInput = crypto.createHash("sha256").update(String(otp)).digest("hex");
+    if (hashedInput !== user.adminOtpHash) {
+      return res.status(401).json(genericError);
+    }
+
+    // Code is single-use — clear it immediately so it can't be replayed.
+    user.adminOtpHash = undefined;
+    user.adminOtpExpire = undefined;
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -33,6 +33,12 @@ const userSchema = new mongoose.Schema(
     // user so a DB leak alone can't be used to reset accounts.
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+
+    // Admin login 2FA: after email+password (+device key) succeed, a 6-digit
+    // OTP is emailed to the admin. Only the hash is stored here, with a short
+    // expiry, so a database leak alone can't be used to complete admin login.
+    adminOtpHash: String,
+    adminOtpExpire: Date,
   },
   { timestamps: true }
 );
