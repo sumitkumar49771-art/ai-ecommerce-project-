@@ -39,6 +39,14 @@ const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
+// Render (like most hosting platforms) sits behind a reverse proxy, so every
+// request arrives with an X-Forwarded-For header. Without this setting,
+// express-rate-limit's IP-detection validation throws on every request,
+// which can crash a request mid-flight with no response ever sent (seen in
+// logs as a POST with no status/size). Trusting exactly one hop (Render's
+// own proxy) fixes this without opening up IP-spoofing risk.
+app.set("trust proxy", 1);
+
 /* ---------------------------------------------------------
    SECURITY & PERFORMANCE MIDDLEWARE (industrial best practice)
 --------------------------------------------------------- */
