@@ -1,14 +1,5 @@
 require("dotenv").config();
 
-// Render's network has no outbound IPv6 route, but Node's default DNS
-// resolution order can still return smtp.gmail.com's IPv6 (AAAA) address
-// first, causing ENETUNREACH when sending admin OTP / password-reset
-// emails. This makes Node prefer IPv4 (A) addresses process-wide whenever
-// both are available — the standard fix for this on Render/Heroku-style
-// hosts. Safe for local dev too (IPv4 works everywhere).
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first");
-
 // Quick visibility into which chatbot provider will be used, printed once
 // at startup — helps confirm a key was actually picked up from .env.
 if (process.env.GROQ_API_KEY) {
@@ -47,14 +38,6 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
-
-// Render (like most hosting platforms) sits behind a reverse proxy, so every
-// request arrives with an X-Forwarded-For header. Without this setting,
-// express-rate-limit's IP-detection validation throws on every request,
-// which can crash a request mid-flight with no response ever sent (seen in
-// logs as a POST with no status/size). Trusting exactly one hop (Render's
-// own proxy) fixes this without opening up IP-spoofing risk.
-app.set("trust proxy", 1);
 
 /* ---------------------------------------------------------
    SECURITY & PERFORMANCE MIDDLEWARE (industrial best practice)

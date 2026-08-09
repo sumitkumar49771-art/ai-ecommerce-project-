@@ -70,28 +70,14 @@ exports.loginUser = async (req, res) => {
         if (!requiredKey || deviceKey !== requiredKey) {
           return res.status(401).json({ message: "Invalid email or password" });
         }
-
-        // Second factor: email + password + device key are correct, but the
-        // admin session isn't issued yet. A one-time 6-digit code is emailed
-        // to the admin's own registered address; only entering that code
-        // (within 10 minutes) completes login. Only the hash is stored.
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-        user.adminOtpHash = crypto.createHash("sha256").update(otp).digest("hex");
-        user.adminOtpExpire = Date.now() + 10 * 60 * 1000;
-        await user.save();
-
-        await sendEmail({
-          to: user.email,
-          subject: "Your ShopAI admin login code",
-          html: `
-            <p>Hi ${user.name},</p>
-            <p>Your one-time admin login code is:</p>
-            <h2 style="letter-spacing:4px;">${otp}</h2>
-            <p>This code expires in 10 minutes. If you didn't try to log in, you can ignore this email.</p>
-          `,
-        });
-
-        return res.json({ otpRequired: true, email: user.email });
+        // Device key already confirms this request came from the owner's
+        // own browser (the key is set once via console, never a visible
+        // field, and no other device can produce it). That's sufficient on
+        // its own, so admin login completes immediately here — no second
+        // "enter the code we emailed you" step. (An emailed-OTP step was
+        // tried, but Render's free tier blocks outbound SMTP, so that mail
+        // never arrives in production; re-add it if moving to a paid tier
+        // or an HTTP-based email API.)
       }
 
       res.json({
