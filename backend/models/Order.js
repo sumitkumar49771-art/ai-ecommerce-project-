@@ -55,10 +55,17 @@ const orderSchema = new mongoose.Schema(
     paidAt: Date,
     cancelReason: String,
 
+    // Which gateway actually processed the payment (COD orders leave this unset)
+    paymentGateway: { type: String, enum: ["razorpay", "cashfree"], default: undefined },
+
     // ---- Real Razorpay payment tracking (UPI/Card orders only; COD has none of these) ----
     razorpayOrderId: String,
     razorpayPaymentId: String,
     razorpaySignature: String,
+
+    // ---- Real Cashfree payment tracking (UPI/Card orders paid via Cashfree) ----
+    cashfreeOrderId: String,
+    cashfreePaymentId: String,
 
     // ---- Return & Refund workflow ----
     // returnStatus: "none" (default) -> "requested" (customer asked) ->
@@ -82,6 +89,7 @@ const orderSchema = new mongoose.Schema(
     refundAmount: Number,
     refundedAt: Date,
     razorpayRefundId: String, // set only when refund was actually issued via Razorpay (UPI/Card orders)
+    cashfreeRefundId: String, // set only when refund was actually issued via Cashfree (UPI/Card orders)
   },
   { timestamps: true }
 );

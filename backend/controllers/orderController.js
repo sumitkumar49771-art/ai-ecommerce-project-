@@ -5,8 +5,9 @@ const Coupon = require("../models/Coupon");
 const Settings = require("../models/Settings");
 const { getShippingQuote } = require("../utils/shippingCalculator");
 const { validateCoupon } = require("../utils/couponValidator");
-const { verifyRazorpaySignature } = require("./paymentController");
+const { verifyRazorpaySignature, verifyCashfreePayment } = require("./paymentController");
 const razorpay = require("../config/razorpay");
+const { cashfreeRequest } = require("../config/cashfree");
 const { sendEmail } = require("../utils/emailService");
 
 // Small shared formatter for order confirmation / status update emails.
@@ -25,16 +26,76 @@ function orderEmailHtml(order, heading, extraLine = "") {
   `;
 }
 
+// Shared refund helper — used by both the customer-initiated cancelOrder
+// route and the admin's updateOrderStatus route below. Mutates `order` in
+// place (status history + refund fields) but does not save() it; callers
+// are expected to save afterwards. Routes the refund to whichever gateway
+// actually processed the original payment.
+async function refundOrderPayment(order, { actor = "Order" } = {}) {
+  if (order.paymentGateway === "cashfree" && order.cashfreeOrderId) {
+    try {
+      const refund = await cashfreeRequest(`/orders/${order.cashfreeOrderId}/refunds`, {
+        method: "POST",
+        body: JSON.stringify({
+          refund_amount: Number(order.totalAmount.toFixed(2)),
+          refund_id: `refund_${order._id.toString().slice(-8)}_${Date.now()}`,
+        }),
+      });
+      order.cashfreeRefundId = refund.refund_id || refund.cf_refund_id;
+      order.refundStatus = "refunded";
+      order.refundAmount = order.totalAmount;
+      order.refundedAt = new Date();
+      order.statusHistory.push({
+        status: "cancelled",
+        note: `${actor} cancelled. ₹${order.totalAmount} refunded via Cashfree (refund id: ${order.cashfreeRefundId}).`,
+      });
+    } catch (err) {
+      order.refundStatus = "pending";
+      order.statusHistory.push({
+        status: "cancelled",
+        note: `${actor} cancelled, but the Cashfree refund call failed: ${err.message || err}. Needs manual follow-up.`,
+      });
+    }
+    return;
+  }
+
+  if (order.razorpayPaymentId) {
+    try {
+      const refund = await razorpay.payments.refund(order.razorpayPaymentId, {
+        amount: Math.round(order.totalAmount * 100), // paise
+        speed: "optimum",
+      });
+      order.razorpayRefundId = refund.id;
+      order.refundStatus = "refunded";
+      order.refundAmount = order.totalAmount;
+      order.refundedAt = new Date();
+      order.statusHistory.push({
+        status: "cancelled",
+        note: `${actor} cancelled. ₹${order.totalAmount} refunded via Razorpay (refund id: ${refund.id}).`,
+      });
+    } catch (err) {
+      order.refundStatus = "pending";
+      order.statusHistory.push({
+        status: "cancelled",
+        note: `${actor} cancelled, but the Razorpay refund call failed: ${err?.error?.description || err.message || err}. Needs manual follow-up.`,
+      });
+    }
+  }
+}
+
 // @route POST /api/orders
 exports.placeOrder = async (req, res) => {
   try {
     const {
       shippingAddress,
       paymentMethod,
+      paymentGateway, // "razorpay" | "cashfree" — which gateway the frontend actually used
       couponCode,
       razorpayOrderId,
       razorpayPaymentId,
       razorpaySignature,
+      cashfreeOrderId,
+      cashfreePaymentId,
     } = req.body;
 
     if (!shippingAddress || !shippingAddress.address || !shippingAddress.city || !shippingAddress.postalCode) {
@@ -89,13 +150,24 @@ exports.placeOrder = async (req, res) => {
     const totalAmount = Math.max(0, itemsSubtotal + shippingCost - discountAmount);
 
     // COD stays unpaid until delivery, as before. UPI/Card orders must come
-    // with a real Razorpay payment that we verify server-side — never trust
-    // an "isPaid" flag sent from the client.
+    // with a real, server-verified payment — we never trust an "isPaid" flag
+    // sent from the client. Which gateway to verify against depends on which
+    // one the frontend actually used (paymentGateway), defaulting to
+    // Razorpay for backward compatibility with older frontend builds.
     let isPaid = false;
+    let verifiedCashfreePaymentId;
     if (paymentMethod && paymentMethod !== "COD") {
-      const verified = verifyRazorpaySignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature });
-      if (!verified) {
-        return res.status(400).json({ message: "Payment verification failed. Please try again." });
+      if (paymentGateway === "cashfree") {
+        const result = await verifyCashfreePayment({ cashfreeOrderId });
+        if (!result.verified) {
+          return res.status(400).json({ message: "Payment verification failed. Please try again." });
+        }
+        verifiedCashfreePaymentId = result.cashfreePaymentId;
+      } else {
+        const verified = verifyRazorpaySignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature });
+        if (!verified) {
+          return res.status(400).json({ message: "Payment verification failed. Please try again." });
+        }
       }
       isPaid = true;
     }
@@ -114,9 +186,12 @@ exports.placeOrder = async (req, res) => {
       paymentMethod: paymentMethod || "COD",
       isPaid,
       paidAt: isPaid ? new Date() : undefined,
-      razorpayOrderId: isPaid ? razorpayOrderId : undefined,
-      razorpayPaymentId: isPaid ? razorpayPaymentId : undefined,
-      razorpaySignature: isPaid ? razorpaySignature : undefined,
+      paymentGateway: isPaid ? (paymentGateway === "cashfree" ? "cashfree" : "razorpay") : undefined,
+      razorpayOrderId: isPaid && paymentGateway !== "cashfree" ? razorpayOrderId : undefined,
+      razorpayPaymentId: isPaid && paymentGateway !== "cashfree" ? razorpayPaymentId : undefined,
+      razorpaySignature: isPaid && paymentGateway !== "cashfree" ? razorpaySignature : undefined,
+      cashfreeOrderId: isPaid && paymentGateway === "cashfree" ? cashfreeOrderId : undefined,
+      cashfreePaymentId: isPaid && paymentGateway === "cashfree" ? verifiedCashfreePaymentId : undefined,
       statusHistory: [{ status: "pending", note: "Order placed successfully" }],
     });
 
@@ -190,34 +265,13 @@ exports.cancelOrder = async (req, res) => {
     order.cancelReason = req.body.reason || "Cancelled by customer";
     order.statusHistory.push({ status: "cancelled", note: order.cancelReason });
 
-    // Real refund: if this order was actually paid online via Razorpay
-    // (UPI/Card), refund it automatically the moment it's cancelled — the
+    // Real refund: if this order was actually paid online (Razorpay or
+    // Cashfree), refund it automatically the moment it's cancelled — the
     // customer already paid, so cancelling shouldn't leave their money
     // stuck waiting for a separate return/refund step. COD orders were
     // never charged through a gateway, so there is nothing to refund.
-    if (order.paymentMethod !== "COD" && order.isPaid && order.razorpayPaymentId) {
-      try {
-        const refund = await razorpay.payments.refund(order.razorpayPaymentId, {
-          amount: Math.round(order.totalAmount * 100), // paise
-          speed: "optimum",
-        });
-        order.razorpayRefundId = refund.id;
-        order.refundStatus = "refunded";
-        order.refundAmount = order.totalAmount;
-        order.refundedAt = new Date();
-        order.statusHistory.push({
-          status: "cancelled",
-          note: `₹${order.totalAmount} refunded via Razorpay (refund id: ${refund.id}).`,
-        });
-      } catch (err) {
-        // Gateway call failed — do NOT claim the money was refunded.
-        // Leave it pending so the admin can see it needs manual follow-up.
-        order.refundStatus = "pending";
-        order.statusHistory.push({
-          status: "cancelled",
-          note: `Order cancelled, but the Razorpay refund call failed: ${err.message || err}. Needs manual follow-up.`,
-        });
-      }
+    if (order.paymentMethod !== "COD" && order.isPaid) {
+      await refundOrderPayment(order, { actor: "Order" });
     }
 
     await order.save();
@@ -395,27 +449,8 @@ exports.updateOrderStatus = async (req, res) => {
     // needs the exact same real refund + restock treatment as a
     // customer-initiated cancel — the customer already paid either way.
     if (status === "cancelled" && !wasAlreadyCancelledOrReturned) {
-      if (order.paymentMethod !== "COD" && order.isPaid && order.razorpayPaymentId) {
-        try {
-          const refund = await razorpay.payments.refund(order.razorpayPaymentId, {
-            amount: Math.round(order.totalAmount * 100), // paise
-            speed: "optimum",
-          });
-          order.razorpayRefundId = refund.id;
-          order.refundStatus = "refunded";
-          order.refundAmount = order.totalAmount;
-          order.refundedAt = new Date();
-          order.statusHistory.push({
-            status: "cancelled",
-            note: `Cancelled by admin. ₹${order.totalAmount} refunded via Razorpay (refund id: ${refund.id}).`,
-          });
-        } catch (err) {
-          order.refundStatus = "pending";
-          order.statusHistory.push({
-            status: "cancelled",
-            note: `Cancelled by admin, but the Razorpay refund call failed: ${err?.error?.description || err.message || err}. Needs manual follow-up.`,
-          });
-        }
+      if (order.paymentMethod !== "COD" && order.isPaid) {
+        await refundOrderPayment(order, { actor: "Cancelled by admin." });
       } else if (order.isPaid) {
         // COD order already marked paid — nothing to call online, just record it.
         order.refundStatus = "refunded";

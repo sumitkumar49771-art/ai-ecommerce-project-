@@ -255,22 +255,31 @@ function setupPaymentToggles() {
   document.querySelectorAll('input[name="payment"]').forEach((radio) => {
     radio.addEventListener("change", renderMockPaymentFields);
   });
+  document.querySelectorAll('input[name="gateway"]').forEach((radio) => {
+    radio.addEventListener("change", renderMockPaymentFields);
+  });
   renderMockPaymentFields();
 }
 
 function renderMockPaymentFields() {
   const checkedInput = document.querySelector('input[name="payment"]:checked');
   const box = document.getElementById("mock-payment-fields");
+  const gatewayBox = document.getElementById("gateway-selector");
   if (!checkedInput) return; // no enabled payment method — message already shown by applyPaymentSettings
   const method = checkedInput.value;
   if (method === "UPI" || method === "Card") {
-    // No manual card/UPI input here on purpose — Razorpay's own secure
-    // checkout popup collects payment details when you click "Place Order".
+    // No manual card/UPI input here on purpose — the chosen gateway's own
+    // secure checkout window collects payment details when you click
+    // "Place Order".
+    const gatewayInput = document.querySelector('input[name="gateway"]:checked');
+    const gatewayName = gatewayInput && gatewayInput.value === "cashfree" ? "Cashfree" : "Razorpay";
     box.innerHTML = `<p style="font-size:13px; color:var(--muted); margin-top:10px;">
-      🔒 You'll pay securely via Razorpay's own checkout window after clicking "Place Order".
+      🔒 You'll pay securely via ${gatewayName}'s own checkout window after clicking "Place Order".
     </p>`;
+    if (gatewayBox) gatewayBox.style.display = "";
   } else {
     box.innerHTML = "";
+    if (gatewayBox) gatewayBox.style.display = "none";
   }
 }
 
@@ -299,15 +308,22 @@ async function handleCheckout() {
 
   btn.disabled = true;
 
-  let razorpayPaymentData = {};
+  let gatewayPaymentData = {};
+  let paymentGateway;
 
-  // Real payment: for UPI/Card, open the actual Razorpay Checkout popup and
-  // wait for a real payment before placing the order. No simulation here —
-  // if the user closes the popup or the payment fails, the order is not placed.
+  // Real payment: for UPI/Card, open the actual checkout popup for whichever
+  // gateway the customer picked (Razorpay or Cashfree) and wait for a real
+  // payment before placing the order. No simulation here — if the user
+  // closes the popup or the payment fails, the order is not placed.
   if (paymentMethod !== "COD") {
+    const gatewayInput = document.querySelector('input[name="gateway"]:checked');
+    paymentGateway = gatewayInput && gatewayInput.value === "cashfree" ? "cashfree" : "razorpay";
     btn.textContent = "Opening payment...";
     try {
-      razorpayPaymentData = await payWithRazorpay(shippingAddress.city, appliedCouponCode);
+      gatewayPaymentData =
+        paymentGateway === "cashfree"
+          ? await payWithCashfree(shippingAddress.city, shippingAddress.phone, appliedCouponCode)
+          : await payWithRazorpay(shippingAddress.city, appliedCouponCode);
     } catch (err) {
       const msg = err.message || "Payment was cancelled or failed.";
       alertBox.innerHTML = `<div class="alert alert-error">${msg}</div>`;
@@ -325,7 +341,7 @@ async function handleCheckout() {
     const order = await apiRequest(
       "/orders",
       "POST",
-      { shippingAddress, paymentMethod, couponCode: appliedCouponCode || undefined, ...razorpayPaymentData },
+      { shippingAddress, paymentMethod, paymentGateway, couponCode: appliedCouponCode || undefined, ...gatewayPaymentData },
       true
     );
     alertBox.innerHTML = `<div class="alert alert-success">Order placed successfully! Redirecting...</div>`;
@@ -401,5 +417,62 @@ function payWithRazorpay(city, couponCode) {
     });
 
     rzp.open();
+  });
+}
+
+// Opens the real Cashfree Checkout modal. Resolves with
+// { cashfreeOrderId } on a successful payment, or rejects if the user
+// cancels/closes the modal or the payment fails. The order isn't marked
+// paid until the backend independently confirms it with Cashfree's API
+// (see verifyCashfreePayment in paymentController.js) — nothing here is
+// trusted client-side.
+function payWithCashfree(city, phone, couponCode) {
+  return new Promise(async (resolve, reject) => {
+    if (typeof Cashfree === "undefined") {
+      const scriptReady = await new Promise((res) => {
+        let waited = 0;
+        const interval = setInterval(() => {
+          waited += 200;
+          if (typeof Cashfree !== "undefined") {
+            clearInterval(interval);
+            res(true);
+          } else if (waited >= 4000) {
+            clearInterval(interval);
+            res(false);
+          }
+        }, 200);
+      });
+      if (!scriptReady) {
+        reject(new Error("Payment gateway script failed to load. Check your internet connection and try again."));
+        return;
+      }
+    }
+
+    let orderData;
+    try {
+      orderData = await apiRequest("/payments/create-cashfree-order", "POST", { city, phone, couponCode }, true);
+    } catch (err) {
+      reject(new Error(err.message || "Could not start payment. Please try again."));
+      return;
+    }
+
+    const cashfree = Cashfree({ mode: orderData.env === "PRODUCTION" ? "production" : "sandbox" });
+
+    cashfree
+      .checkout({
+        paymentSessionId: orderData.paymentSessionId,
+        redirectTarget: "_modal",
+      })
+      .then((result) => {
+        if (result.error) {
+          // Includes the user closing the modal before finishing.
+          reject(new Error(result.error.message || "Payment was cancelled or failed."));
+          return;
+        }
+        resolve({ cashfreeOrderId: orderData.cashfreeOrderId });
+      })
+      .catch((err) => {
+        reject(new Error(err.message || "Payment failed."));
+      });
   });
 }
