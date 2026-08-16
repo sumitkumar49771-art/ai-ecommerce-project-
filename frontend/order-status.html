@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment Status — ShopAI</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <div class="container" style="max-width:560px; text-align:center; padding-top:60px; padding-bottom:60px;">
+    <div class="admin-card" style="padding:40px 30px;">
+      <div id="status-icon" style="font-size:48px; margin-bottom:16px;">⏳</div>
+      <h2 id="status-title" style="margin-bottom:10px;">Confirming your payment...</h2>
+      <p id="status-message" style="color:var(--muted); margin-bottom:24px;">
+        Please wait a moment, we're checking with Cashfree.
+      </p>
+      <div id="status-actions" style="display:none;">
+        <a href="orders.html" class="btn">View My Orders</a>
+        <a href="checkout.html" class="btn btn-outline" style="margin-left:10px;">Back to Checkout</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    async function resolveCashfreeRedirect() {
+      const iconEl = document.getElementById("status-icon");
+      const titleEl = document.getElementById("status-title");
+      const messageEl = document.getElementById("status-message");
+      const actionsEl = document.getElementById("status-actions");
+
+      function showResult(icon, title, message) {
+        iconEl.textContent = icon;
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        actionsEl.style.display = "block";
+      }
+
+      if (!isLoggedIn()) {
+        showResult("🔒", "Please log in", "Log in to see your order status.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const cashfreeOrderId = params.get("cf_order_id");
+      const pendingRaw = sessionStorage.getItem("pendingCashfreeOrder");
+
+      if (!cashfreeOrderId) {
+        showResult("❓", "Nothing to confirm here", "This page is only used right after a Cashfree payment.");
+        return;
+      }
+
+      if (!pendingRaw) {
+        // Most likely the order was already placed successfully in the
+        // original tab (the normal, non-redirect path) before this page
+        // ever loaded — sessionStorage was already cleared. Send the
+        // customer to My Orders rather than guessing.
+        showResult(
+          "✅",
+          "Payment received",
+          "If your order isn't showing yet in My Orders within a minute, please contact support with this reference: " + cashfreeOrderId
+        );
+        return;
+      }
+
+      let pending;
+      try {
+        pending = JSON.parse(pendingRaw);
+      } catch (e) {
+        pending = null;
+      }
+
+      if (!pending) {
+        showResult("⚠️", "Something went wrong", "We couldn't read your checkout details. Please check My Orders or try again.");
+        return;
+      }
+
+      try {
+        const order = await apiRequest(
+          "/orders",
+          "POST",
+          {
+            shippingAddress: pending.shippingAddress,
+            paymentMethod: pending.paymentMethod,
+            paymentGateway: "cashfree",
+            couponCode: pending.couponCode,
+            cashfreeOrderId,
+          },
+          true
+        );
+        sessionStorage.removeItem("pendingCashfreeOrder");
+        showResult("🎉", "Order placed successfully!", "Redirecting you to your order...");
+        setTimeout(() => (window.location.href = `orders.html?highlight=${order._id}`), 1200);
+      } catch (err) {
+        // Verification failing here most often means the payment wasn't
+        // actually completed (user backed out, or it's still processing on
+        // Cashfree's side) — don't clear pendingCashfreeOrder so a retry
+        // from the checkout page can still use it if the payment does land.
+        showResult(
+          "❌",
+          "Payment could not be confirmed",
+          err.message || "We couldn't verify this payment yet. If money was deducted, please wait a few minutes and check My Orders, or contact support."
+        );
+      }
+    }
+
+    resolveCashfreeRedirect();
+  </script>
+</body>
+</html>

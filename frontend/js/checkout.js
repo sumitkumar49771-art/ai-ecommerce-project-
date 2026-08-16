@@ -319,6 +319,21 @@ async function handleCheckout() {
     const gatewayInput = document.querySelector('input[name="gateway"]:checked');
     paymentGateway = gatewayInput && gatewayInput.value === "cashfree" ? "cashfree" : "razorpay";
     btn.textContent = "Opening payment...";
+
+    // Cashfree's modal checkout can sometimes fall back to a full-page
+    // redirect (e.g. third-party cookies blocked) instead of resolving
+    // in-page. If that happens the browser navigates to order-status.html
+    // and this whole function's local variables are gone — so save what's
+    // needed to actually place the order here, before opening the popup.
+    // order-status.html reads this back and finishes the job. Cleared once
+    // the order is placed successfully below.
+    if (paymentGateway === "cashfree") {
+      sessionStorage.setItem(
+        "pendingCashfreeOrder",
+        JSON.stringify({ shippingAddress, paymentMethod, couponCode: appliedCouponCode || undefined })
+      );
+    }
+
     try {
       gatewayPaymentData =
         paymentGateway === "cashfree"
@@ -344,6 +359,7 @@ async function handleCheckout() {
       { shippingAddress, paymentMethod, paymentGateway, couponCode: appliedCouponCode || undefined, ...gatewayPaymentData },
       true
     );
+    sessionStorage.removeItem("pendingCashfreeOrder");
     alertBox.innerHTML = `<div class="alert alert-success">Order placed successfully! Redirecting...</div>`;
     showToast("Order placed!", "success");
     setTimeout(() => (window.location.href = `orders.html?highlight=${order._id}`), 1000);
