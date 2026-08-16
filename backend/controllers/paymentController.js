@@ -109,6 +109,12 @@ exports.createCashfreeOrder = async (req, res) => {
           // Modal checkout (opened via the JS SDK) doesn't navigate away, but
           // Cashfree still requires a return_url on the order.
           return_url: `${req.protocol}://${req.get("host")}/order-status.html?cf_order_id={order_id}`,
+          // Paylater and Cardless EMI eligibility is decided by third-party
+          // providers per phone number (not by us), and almost always comes
+          // back "not eligible" — especially with test numbers — which is a
+          // dead end for the customer. Hide both so checkout only offers
+          // methods that actually work: cards, netbanking, UPI, wallets.
+          payment_methods: "cc,dc,nb,upi,app",
         },
       }),
     });
